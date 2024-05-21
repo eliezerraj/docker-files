@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-nginx-proxy
+  namespace: test-a
+spec:
+  selector:
+    app: nginx-proxy
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-proxy
+  namespace: test-a
+spec:
+  selector:
+    matchLabels:
+      app: nginx-proxy
+  template:
+    metadata:
+      labels:
+        app: nginx-proxy
+    spec:
+      containers:
+      - name: nginx-proxy
+        imagePullPolicy: Never
+        image: nginx-proxy
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        ports:
+        - containerPort: 8080

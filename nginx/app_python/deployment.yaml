@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-my-py-app
+  namespace: test-a
+spec:
+  selector:
+    app: my-py-app
+  clusterIP: None
+  ports:
+  - port: 6000
+    targetPort: 6000 
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-py-app
+  namespace: test-a
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: my-py-app
+  template:
+    metadata:
+      labels:
+        app: my-py-app
+    spec:
+      containers:
+      - name: my-py-app
+        imagePullPolicy: Never
+        image: my-py-app
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        ports:
+        - containerPort: 6000
