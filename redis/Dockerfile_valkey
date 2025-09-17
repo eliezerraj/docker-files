@@ -1,0 +1,13 @@
+# docker build -t valkey .
+# docker run -d --name valkey-memory -p 6379:6379 valkey
+# docker exec -it valkey-memory valkey-cli // test-it $PING
+
+FROM valkey/valkey:latest
+
+# Optional: Copy a custom Valkey configuration file
+# This assumes you have a valkey.conf file in the same directory as your Dockerfile
+#COPY valkey.conf /usr/local/etc/valkey/valkey.conf
+
+# Optional: Expose the default Valkey port
+EXPOSE 6379
+
