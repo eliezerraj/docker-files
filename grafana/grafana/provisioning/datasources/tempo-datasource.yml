@@ -1,0 +1,15 @@
+apiVersion: 1 
+
+datasources:
+  - name: Tempo
+    type: tempo
+    access: proxy
+    orgId: 1
+    url: http://tempo:3200 
+    editable: true
+    isDefault: false
+    version: 1
+    jsonData:
+      lokiSearch: true 
+      lokiQuery:
+        datasourceUid: 'loki-uid'

@@ -1,0 +1,40 @@
+// =======================
+// Grafana Alloy -> Loki
+// =======================
+
+loki.write "default" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+  external_labels = {
+    agent = "alloy-localhost-collector",
+    agent_hostname = env("HOSTNAME"),
+  }
+}
+
+// --------- Local Machibe ---------------
+// { __path__ = "/var/log/nginx/access.log", job = "nginx_access" },
+// { __path__ = "/var/log/syslog", job = "syslog_host_logs" },
+loki.source.file "syslog_logs" {
+  targets = [
+    { __path__ = "/mnt/c/Eliezer/log/go-limit.log", job = "log_go_limit_localhost" },
+    { __path__ = "/mnt/c/Eliezer/log/go-account.log", job = "log_go_account_localhost" },
+  ]
+  forward_to = [loki.write.default.receiver]
+}
+
+// --------- Container ---------------
+loki.source.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+
+  targets = [
+    { container_name = "~.+" },
+  ]
+
+  forward_to = [loki.write.default.receiver]
+  labels = {
+    job        = "docker",
+    container  = "{{ .ContainerName }}",
+    image      = "{{ .Image }}",
+  }
+}
