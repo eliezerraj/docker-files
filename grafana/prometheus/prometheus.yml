@@ -10,44 +10,9 @@ scrape_configs:
     static_configs:
       - targets: ["172.17.0.1:5000"] # Adjust the IP and port as necessary, 172.17.0.1 is commonly the host machine from within Docker
 
-  - job_name: "go_gateway-grpc"
+  - job_name: "go_inventory"
     scrape_interval: 10s
     scrape_timeout: 10s
     metrics_path: /metrics
     static_configs:
-      - targets: ["172.17.0.1:6000"]
-
-  - job_name: "go_card"
-    scrape_interval: 10s
-    scrape_timeout: 10s
-    metrics_path: /metrics
-    static_configs:
-      - targets: ["172.17.0.1:6001"]
-
-  - job_name: "go_limit"
-    scrape_interval: 10s
-    scrape_timeout: 10s
-    metrics_path: /metrics
-    static_configs:
-      - targets: ["172.17.0.1:6002"]
-
-  - job_name: "go_ledger"
-    scrape_interval: 10s
-    scrape_timeout: 10s
-    metrics_path: /metrics
-    static_configs:
-      - targets: ["172.17.0.1:6003"]
-
-  - job_name: "go_payment-gateway"
-    scrape_interval: 10s
-    scrape_timeout: 10s
-    metrics_path: /metrics
-    static_configs:
-      - targets: ["172.17.0.1:6004"]
-
-  - job_name: "go_worker-ledger"
-    scrape_interval: 10s
-    scrape_timeout: 10s
-    metrics_path: /metrics
-    static_configs:
-      - targets: ["172.17.0.1:2003"]
+      - targets: ["172.17.0.1:7000"]

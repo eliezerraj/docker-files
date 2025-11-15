@@ -17,8 +17,7 @@ loki.write "default" {
 // { __path__ = "/var/log/syslog", job = "syslog_host_logs" },
 loki.source.file "syslog_logs" {
   targets = [
-    { __path__ = "/mnt/c/Eliezer/log/go-limit.log", job = "log_go_limit_localhost" },
-    { __path__ = "/mnt/c/Eliezer/log/go-account.log", job = "log_go_account_localhost" },
+    { __path__ = "/mnt/c/Eliezer/log/go-inventory.log", job = "log_go_inventory_localhost" },
   ]
   forward_to = [loki.write.default.receiver]
 }
