@@ -2,6 +2,7 @@
 // Grafana Alloy -> Loki
 // =======================
 
+// --------- Default ---------------
 loki.write "default" {
   endpoint {
     url = "http://loki:3100/loki/api/v1/push"
@@ -11,19 +12,79 @@ loki.write "default" {
     agent_hostname = env("HOSTNAME"),
   }
 }
+// --------- Default ---------------
 
-// --------- Local Machibe ---------------
-// { __path__ = "/var/log/nginx/access.log", job = "nginx_access" },
-// { __path__ = "/var/log/syslog", job = "syslog_host_logs" },
+// --------- Aws Firehose ---------------
+loki.process "service_name_setter" {
+  forward_to = [ loki.write.grafana_loki.receiver ]
+
+  stage.json {
+    expressions = {
+      component_value = "component",
+    }
+  }
+
+  stage.labels {
+    values = {
+      service_name = "component_value",
+    }
+  }
+}
+
+
+loki.write "grafana_loki" {
+  endpoint {
+    url = "https://loki-grafana.architecture.caradhras.io/loki/api/v1/push"
+    // If you need auth:
+    // basic_auth {
+    //   username = "<username>"
+    //   password_file = "<path-to-password>"
+    // }
+  }
+}
+
+loki.source.awsfirehose "loki_firehose_receiver" {
+  http {
+    listen_address = "0.0.0.0"
+    listen_port    = 9999
+  }
+
+  use_incoming_timestamp = true
+  // Optional: relabel AWS metadata into Loki labels
+  //relabel_rules = loki.relabel.logging_origin.rules
+
+  forward_to = [ loki.process.service_name_setter.receiver ]
+}
+
+loki.relabel "logging_origin" {
+  rule {
+    action       = "replace"
+    source_labels = ["__aws_cw_log_group"]
+    target_label = "log_group"
+  }
+  rule {
+    action       = "replace"
+    source_labels = ["__aws_cw_log_stream"]
+    target_label = "log_stream"
+  }
+  forward_to = []
+}
+//--------- Aws Firehose ---------------
+
+// --------- Local Machine ---------------
 loki.source.file "syslog_logs" {
   targets = [
-    { __path__ = "/mnt/c/Eliezer/log/go-inventory.log", job = "log_go_inventory_localhost" },
-    { __path__ = "/mnt/c/Eliezer/log/go-cart.log", job = "log_go_cart_localhost" },
-    { __path__ = "/mnt/c/Eliezer/log/go-clearance.log", job = "log_go_clearance_localhost" },
-    { __path__ = "/mnt/c/Eliezer/log/go-order.log", job = "log_go_order_localhost" },
+    // { __path__ = "/var/log/syslog", job = "syslog_host_logs" },
+    { __path__ = "/mnt/c/Eliezer/log/go-inventory.log", job = "go-inventory.localhost"},
+    { __path__ = "/mnt/c/Eliezer/log/go-cart.log", job = "go-cart.localhost"},
+    { __path__ = "/mnt/c/Eliezer/log/go-clearance.log", job = "go-clearance.localhost"},
+    { __path__ = "/mnt/c/Eliezer/log/go-order.log", job = "go-order.localhost"},
+    { __path__ = "/mnt/c/Eliezer/log/go-worker-event.log", job = "go-worker-event.localhost"},
+    { __path__ = "/mnt/c/Eliezer/log/lambda-go-identidy.log", job = "lambda-go-identidy.localhost"},
   ]
   forward_to = [loki.write.default.receiver]
 }
+// --------- Local Machine ---------------
 
 // --------- Container ---------------
 loki.source.docker "containers" {
@@ -34,9 +95,11 @@ loki.source.docker "containers" {
   ]
 
   forward_to = [loki.write.default.receiver]
+  
   labels = {
     job        = "docker",
     container  = "{{ .ContainerName }}",
     image      = "{{ .Image }}",
   }
 }
+// --------- Container ---------------

@@ -2,6 +2,7 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
+ # Adjust the IP and port as necessary, 172.17.0.1 is commonly the host machine from within Docker
 scrape_configs:
   - job_name: "go_inventory"
     scrape_interval: 10s
@@ -29,4 +30,11 @@ scrape_configs:
     scrape_timeout: 10s
     metrics_path: /metrics
     static_configs:
-      - targets: ["172.17.0.1:7004"] # Adjust the IP and port as necessary, 172.17.0.1 is commonly the host machine from within Docker
+      - targets: ["172.17.0.1:7004"]
+
+  - job_name: "go_worker_event"
+    scrape_interval: 10s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["172.17.0.1:7005"]

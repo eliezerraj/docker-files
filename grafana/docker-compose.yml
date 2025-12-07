@@ -92,17 +92,14 @@ services:
     volumes:
       # Mount your Alloy config
       - ./alloy/config.alloy:/etc/alloy/config.alloy
-      
       # Mount syslogs
       #- /var/log:/var/log:ro
-      
       # Mount app logs
       - /mnt/c/Eliezer/log:/mnt/c/Eliezer/log:ro
-
       # Mount docker logs
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
-      - "12345:12345"
+      - "12345:9999"
     command:
       - run
       - /etc/alloy/config.alloy
