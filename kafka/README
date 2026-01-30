@@ -1,0 +1,8 @@
+## Start
+docker compose up -d
+
+## Stop and Remove everything
+docker compose down -v
+
+## Prune any orphaned volumes
+docker volume prune -f

@@ -81,6 +81,8 @@ loki.source.file "syslog_logs" {
     { __path__ = "/mnt/c/Eliezer/log/go-order.log", job = "go-order.localhost"},
     { __path__ = "/mnt/c/Eliezer/log/go-worker-event.log", job = "go-worker-event.localhost"},
     { __path__ = "/mnt/c/Eliezer/log/lambda-go-identidy.log", job = "lambda-go-identidy.localhost"},
+    { __path__ = "/mnt/c/Eliezer/log/py-mcp-server-go-ecommerce.log", job = "py-mcp-server-go-ecommerce.localhost"},
+    { __path__ = "/mnt/c/Eliezer/log/py-agent-ecommerce.log", job = "py-agent-ecommerce.localhost"},
   ]
   forward_to = [loki.write.default.receiver]
 }

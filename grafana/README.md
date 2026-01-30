@@ -1,27 +1,27 @@
- Grafana with Prometheus (metrics data)
+# Grafana with Prometheus (metrics data)
 
   docker-compose up
   docker-compose up -d --force-recreate
 
-# Access Prometheus
+## Access Prometheus
 
   http://localhost:9090/targets
 
-# Access Grafana
+## Access Grafana
 
   http://localhost:3000/
 
-# Access Loki
+## Access Loki
 
   http://loki:3100/ready
 
   Grafana loki datasource (http://172.17.0.1:3100)
 
-# Alloy 
+## Alloy 
 
   curl http://alloy:12345/-/healthy
 
-# Test Loki
+## Test Loki
 
   Loki standart
 

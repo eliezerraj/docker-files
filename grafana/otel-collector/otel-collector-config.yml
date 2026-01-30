@@ -9,12 +9,10 @@ receivers:
 exporters:
   otlphttp/loki:
     endpoint: "http://loki:3100/otlp"
-
   otlp:
     endpoint: tempo:4317 
     tls:
       insecure: true
-      
   prometheus:
     endpoint: 0.0.0.0:8889
 
@@ -23,13 +21,13 @@ processors:
     attributes:
       - key: k8s.cluster.name
         value: local-go-app
-        action: insert
+        action: upsert
       - key: otel.resource.deployment.environment
         value: dev-compose
-        action: insert
+        action: upsert
   batch:
-    send_batch_size: 1000
-    timeout: 10s
+    send_batch_size: 512
+    timeout: 5s
 
 service:
   pipelines:
@@ -40,7 +38,7 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlp ]
+      exporters: [otlp]
     metrics:
       receivers: [otlp]
       processors: [batch]
