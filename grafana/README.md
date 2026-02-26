@@ -1,7 +1,7 @@
 # Grafana with Prometheus (metrics data)
 
   docker-compose up
-  docker-compose up -d --force-recreate
+  docker compose up -d --force-recreate
 
 ## Access Prometheus
 
