@@ -1,5 +1,4 @@
 services:
-
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
@@ -25,9 +24,10 @@ services:
     user: root
     volumes:
       - tempo-data:/var/tempo
-    # We add chmod 777 to ensure the 10001 user has absolute access on the Pi
     command: >
       sh -c "chown -R 10001:10001 /var/tempo && chmod -R 777 /var/tempo"
+    networks:
+      - grafana_network
 
   tempo:
     image: grafana/tempo:2.10.1
@@ -102,10 +102,8 @@ services:
     volumes:
       # Mount your Alloy config
       - ./alloy/config.alloy:/etc/alloy/config.alloy
-      # Mount syslogs
-      #- /var/log:/var/log:ro
       # Mount app logs
-      - /mnt/c/Eliezer/log:/mnt/c/Eliezer/log:ro
+      - /home/admin/mnt/log:/home/admin/mnt/log:ro
       # Mount docker logs
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:

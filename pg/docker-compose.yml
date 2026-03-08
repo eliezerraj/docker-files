@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   db-01:
     image: postgres:16
@@ -12,7 +11,7 @@ services:
     volumes:
       - postgres_data_01:/var/lib/postgresql/data
 
-  db02:
+  db-02:
     image: postgres:16
     restart: always
     environment:

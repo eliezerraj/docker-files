@@ -31,7 +31,6 @@ loki.process "service_name_setter" {
   }
 }
 
-
 loki.write "grafana_loki" {
   endpoint {
     url = "https://loki-grafana.architecture.caradhras.io/loki/api/v1/push"
@@ -74,7 +73,6 @@ loki.relabel "logging_origin" {
 // --------- Local Machine ---------------
 loki.source.file "syslog_logs" {
   targets = [
-    // { __path__ = "/var/log/syslog", job = "syslog_host_logs" },
     { __path__ = "/mnt/c/Eliezer/log/go-inventory.log", job = "go-inventory.localhost"},
     { __path__ = "/mnt/c/Eliezer/log/go-cart.log", job = "go-cart.localhost"},
     { __path__ = "/mnt/c/Eliezer/log/go-clearance.log", job = "go-clearance.localhost"},

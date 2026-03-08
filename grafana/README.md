@@ -1,6 +1,6 @@
 # Grafana with Prometheus (metrics data)
 
-  docker-compose up
+  docker compose up
   docker compose up -d --force-recreate
 
 ## Access Prometheus
@@ -17,7 +17,7 @@
 
   Grafana loki datasource (http://172.17.0.1:3100)
 
-## Alloy 
+## Alloy (just in case for local proposal). It is is charge to pull the logs to loki. In AWS the alloy might be substitute for aws firehose
 
   curl http://alloy:12345/-/healthy
 
