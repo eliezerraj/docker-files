@@ -1,0 +1,42 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+ # Adjust the IP and port as necessary, 172.17.0.1 is commonly the host machine from within Docker
+ # target:172.17.0.1 (localmachine)
+ # my-machine.localhost (running ubuntu) the my-machine.localhost is the hostname where the services are runnning. (add entry hosts file or recordset in dns server)
+scrape_configs:
+  - job_name: "go_inventory"
+    scrape_interval: 10s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["172.17.0.1:7000"]
+
+  - job_name: "go_cart"
+    scrape_interval: 10s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["172.17.0.1:7002"]
+
+  - job_name: "clearance"
+    scrape_interval: 10s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["172.17.0.1:7003"]
+
+  - job_name: "go_order"
+    scrape_interval: 10s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["172.17.0.1:7004"]
+
+  - job_name: "go_worker_event"
+    scrape_interval: 10s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["172.17.0.1:7005"]

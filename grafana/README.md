@@ -20,6 +20,7 @@
 ## Alloy (just in case for local proposal). It is is charge to pull the logs to loki. In AWS the alloy might be substitute for aws firehose
 
   curl http://alloy:12345/-/healthy
+  curl http://localhost:12345/-/healthy
 
 ## Test Loki
 

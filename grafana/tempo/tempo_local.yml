@@ -3,9 +3,17 @@ server:
   http_listen_port: 3200
   log_level: info
 
-cache:
-  background:
-    writeback_goroutines: 5
+memberlist:
+  join_members: []
+  abort_if_cluster_join_fails: false
+
+ingester:
+  lifecycler:
+    ring:
+      kvstore:
+        store: inmemory
+      replication_factor: 1
+  max_block_duration: 30m # maximum duration before cutting a block
 
 query_frontend:
   search:
@@ -17,7 +25,7 @@ query_frontend:
   trace_by_id:
     duration_slo: 100ms
   metrics:
-    max_duration: 200h # maximum duration of a metrics query, increase for local setups
+    max_duration: 3h # maximum duration of a metrics query
     query_backend_after: 5m
     duration_slo: 5s
     throughput_bytes_slo: 1.073741824e+09
@@ -27,17 +35,22 @@ distributor:
     cost_attribution:
       enabled: true
   receivers: # this configuration will listen on all ports and protocols that tempo is capable of.
+    jaeger:
+      protocols:
+        grpc:
+          endpoint: "tempo:14250"
     otlp:
       protocols:
         grpc:
-          endpoint: "0.0.0.0:4317"
+          endpoint: "tempo:4317"
         http:
-          endpoint: "0.0.0.0:4318"
-
-ingester:
-  max_block_duration: 5m # cut the headblock when this much time passes. this is being set for demo purposes and should probably be left alone normally
+          endpoint: "tempo:4318"
 
 metrics_generator:
+  ring:
+    kvstore:
+      store: inmemory
+    instance_addr: 127.0.0.1
   registry:
     external_labels:
       source: tempo
@@ -56,9 +69,9 @@ metrics_generator:
 
 storage:
   trace:
-    backend: local
+    backend: local # backend configuration to use
     wal:
-      path: /var/tempo/wal
+      path: /var/tempo/wal # where to store the wal locally
     local:
       path: /var/tempo/blocks
 
@@ -67,8 +80,9 @@ overrides:
     compaction:
       block_retention: 720h # overall Tempo trace retention
     cost_attribution:
+      max_cardinality: 1000
       dimensions:
         service.name: ""
     metrics_generator:
-      processors: [service-graphs, span-metrics, local-blocks] # enables metrics generator
+      processors: [service-graphs, span-metrics] # enables metrics generator
       generate_native_histograms: both
