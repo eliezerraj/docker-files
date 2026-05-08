@@ -1,0 +1,316 @@
+services:
+  go-data-sink:
+    profiles: ["go-data-sink"]
+    container_name: go-data-sink
+    build:
+      context: ../../go-data-sink
+      dockerfile: Dockerfile
+    image: go-data-sink:local
+    pull_policy: never
+    environment:
+
+      VERSION: "1.0"
+      ACCOUNT: "localhost"
+      APP_NAME: "go-data-sink.docker-compose"
+      PORT: "7008"
+      ENV: "dev"
+
+      DB_HOST: "db-02"
+      DB_PORT: "5432"
+      DB_NAME: "postgres"
+      DB_MAX_CONNECTION: "30"
+      CTX_TIMEOUT: "10"
+
+      LOG_LEVEL: "info"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
+      OTEL_METRICS: "true"
+      OTEL_TRACES: "true"
+      OTEL_STDOUT_TRACER: "false"
+      OTEL_LOGS: "true"
+      OTEL_STDOUT_LOG_GROUP: "true"
+      LOG_GROUP: "/mnt/c/Eliezer/log/go-data-sink.log"
+
+    ports:
+      - "7008:7008"
+    volumes:
+      - ./secrets/username:/var/pod/secret/username:ro
+      - ./secrets/password:/var/pod/secret/password:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - ecommerce_network
+  
+  go-inventory:
+    profiles: ["go-inventory"]
+    depends_on:
+    - go-data-sink
+    container_name: go-inventory
+    build:
+      context: ../../go-inventory
+      dockerfile: Dockerfile
+    image: go-inventory:local
+    pull_policy: never
+    environment:
+      VERSION: "1.0"
+      ACCOUNT: "localhost"
+      APP_NAME: "go-inventory.docker-compose"
+      PORT: "7000"
+      ENV: "dev"
+
+      DB_HOST: "db-01"
+      DB_PORT: "5432"
+      DB_NAME: "postgres"
+      DB_MAX_CONNECTION: "30"
+      CTX_TIMEOUT: "10"
+
+      LOG_LEVEL: "info"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
+      OTEL_METRICS: "true"
+      OTEL_TRACES: "true"
+      OTEL_STDOUT_TRACER: "false"
+      OTEL_PROPAGATORS: "xray,tracecontext,b3,baggage"
+      OTEL_LOGS: "true"
+      OTEL_STDOUT_LOG_GROUP: "true"
+      LOG_GROUP: "/mnt/c/Eliezer/log/go-inventory.log"
+
+      NAME_SERVICE_00: "go-data-sink"
+      URL_SERVICE_00: "http://go-data-sink:7008"
+      HOST_SERVICE_00: "go-data-sink"
+      CLIENT_HTTP_TIMEOUT_00: "5"
+    ports:
+      - "7000:7000"
+    volumes:
+      - ./secrets/username:/var/pod/secret/username:ro
+      - ./secrets/password:/var/pod/secret/password:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - ecommerce_network
+      
+  go-cart:
+    profiles: ["go-cart"]
+    depends_on:
+    - go-inventory
+    container_name: go-cart
+    build:
+      context: ../../go-cart
+      dockerfile: Dockerfile
+    image: go-cart:local
+    pull_policy: never
+    environment:
+      VERSION: "1.0"
+      ACCOUNT: "localhost"
+      APP_NAME: "go-cart.docker-compose"
+      PORT: "7001"
+
+      ENV: "dev"
+      DB_HOST: "db-02"
+      DB_PORT: "5432"
+      DB_NAME: "postgres"
+      DB_MAX_CONNECTION: "30"
+      CTX_TIMEOUT: "10"
+
+      LOG_LEVEL: "info"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
+      OTEL_METRICS: "true"
+      OTEL_TRACES: "true"
+      OTEL_STDOUT_TRACER: "false"
+      OTEL_LOGS: "true"
+      OTEL_STDOUT_LOG_GROUP: "true"
+      LOG_GROUP: "/mnt/c/Eliezer/log/go-cart.log"
+
+      NAME_SERVICE_00: "go-inventory"
+      URL_SERVICE_00: "http://go-inventory:7000"
+      HOST_SERVICE_00: "go-inventory"
+      CLIENT_HTTP_TIMEOUT_00: "5"
+    ports:
+      - "7001:7001"
+    volumes:
+      - ./secrets/username:/var/pod/secret/username:ro
+      - ./secrets/password:/var/pod/secret/password:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - ecommerce_network
+
+  go-clearance:
+    profiles: ["go-clearance"]
+    depends_on:
+    - go-cart
+    container_name: go-clearance
+    build:
+      context: ../../go-clearance
+      dockerfile: Dockerfile
+    image: go-clearance:local
+    pull_policy: never
+    environment:
+      VERSION: "1.0"
+      ACCOUNT: "localhost"
+      APP_NAME: "go-clearance.docker-compose"
+      PORT: "7003"
+      ENV: "dev"
+
+      DB_HOST: "db-02"
+      DB_PORT: "5432"
+      DB_NAME: "postgres"
+      DB_MAX_CONNECTION: "30"
+      CTX_TIMEOUT: "10"
+      
+      LOG_LEVEL: "info"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
+      OTEL_METRICS: "true"
+      OTEL_TRACES: "true"
+      OTEL_STDOUT_TRACER: "false"
+      OTEL_LOGS: "true"
+      OTEL_STDOUT_LOG_GROUP: "true"
+      LOG_GROUP: "/mnt/c/Eliezer/log/go-clearance.log"
+
+      NAME_SERVICE_00: "go-order"
+      URL_SERVICE_00: "http://go-order:7004"
+      HOST_SERVICE_00: "go-order"
+      CLIENT_HTTP_TIMEOUT_00: "5"
+
+      KAFKA_USER: "admin"
+      KAFKA_PASSWORD: "admin"
+      KAFKA_CLIENT_ID: "GO-CLEARANCE-LOCAL"
+      KAFKA_PARTITION: "3"
+      KAFKA_REPLICATION: "1"
+      TOPIC_EVENT_00: "topic.clearance.local"
+
+      # Change from PLAINTEXT to SASL_PLAINTEXT to enable authentication
+      KAFKA_PROTOCOL: "SASL_PLAINTEXT"
+      KAFKA_MECHANISM: "PLAIN"
+      KAFKA_BROKER_1: "kafka:9092"
+      KAFKA_BROKER_2: "kafka:9092"
+      KAFKA_BROKER_3: "kafka:9092"
+    ports:
+      - "7003:7003"
+    volumes:
+      - ./secrets/username:/var/pod/secret/username:ro
+      - ./secrets/password:/var/pod/secret/password:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - ecommerce_network
+
+  go-order:
+    profiles: ["go-order"]
+    depends_on:
+    - go-inventory
+    - go-cart
+    container_name: go-order
+    build:
+      context: ../../go-order
+      dockerfile: Dockerfile
+    image: go-order:local
+    pull_policy: never
+    environment:
+      VERSION: "1.0"
+      ACCOUNT: "localhost"
+      APP_NAME: "go-order.docker-compose"
+      PORT: "7004"
+      ENV: "dev"
+
+      DB_HOST: "db-01"
+      DB_PORT: "5432"
+      DB_NAME: "postgres"
+      DB_MAX_CONNECTION: "30"
+      CTX_TIMEOUT: "10"
+
+      LOG_LEVEL: "info"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
+      OTEL_METRICS: "true"
+      OTEL_TRACES: "true"
+      OTEL_STDOUT_TRACER: "false"
+      OTEL_LOGS: "true"
+      OTEL_STDOUT_LOG_GROUP: "true"
+      LOG_GROUP: "/mnt/c/Eliezer/log/go-order.log"
+
+      NAME_SERVICE_00: go-cart
+      URL_SERVICE_00: http://go-cart:7001
+      HOST_SERVICE_00: go-cart
+      CLIENT_HTTP_TIMEOUT_00: 5
+
+      NAME_SERVICE_01: go-inventory
+      URL_SERVICE_01: http://go-inventory:7000
+      HOST_SERVICE_01: go-inventory
+      CLIENT_HTTP_TIMEOUT_01: 5
+
+      NAME_SERVICE_02: go-clearance
+      URL_SERVICE_02: http://go-clearance:7003
+      HOST_SERVICE_02: go-clearance
+      CLIENT_HTTP_TIMEOUT_02: 5
+
+      NAME_SERVICE_03: go-worker-event
+      URL_SERVICE_03: http://go-worker-event:7007
+      HOST_SERVICE_03: go-worker-event
+      CLIENT_HTTP_TIMEOUT_03: 5
+
+    ports:
+      - "7004:7004"
+    volumes:
+      - ./secrets/username:/var/pod/secret/username:ro
+      - ./secrets/password:/var/pod/secret/password:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - ecommerce_network
+
+  go-worker-event:
+    profiles: ["go-worker-event"]
+    container_name: go-worker-event
+    build:
+      context: ../../go-worker-event
+      dockerfile: Dockerfile
+    image: go-worker-event:local
+    pull_policy: never
+    environment:
+      VERSION: "1.0"
+      ACCOUNT: "localhost"
+      APP_NAME: "go-worker-event.docker-compose"
+      PORT: "7007"
+      ENV: "dev"
+
+      DB_HOST: "db-01"
+      DB_PORT: "5432"
+      DB_NAME: "postgres"
+      DB_MAX_CONNECTION: "30"
+      CTX_TIMEOUT: "10"
+
+      LOG_LEVEL: "info"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
+      OTEL_METRICS: "true"
+      OTEL_TRACES: "true"
+      OTEL_STDOUT_TRACER: "false"
+      OTEL_LOGS: "true"
+      OTEL_STDOUT_LOG_GROUP: "true"
+      LOG_GROUP: "/mnt/c/Eliezer/log/go-worker-event.log"
+
+      KAFKA_USER: "admin"
+      KAFKA_PASSWORD: "admin"
+      KAFKA_CLIENT_ID: "GO-WORKER-EVENT-LOCAL"
+      KAFKA_PARTITION: "3"
+      KAFKA_REPLICATION: "1"
+      KAFKA_GROUP_ID: "GROUP-WORKER-EVENT-LOCAL"
+      TOPIC_EVENT_00: "topic.clearance.local"
+
+      # Change from PLAINTEXT to SASL_PLAINTEXT to enable authentication
+      KAFKA_PROTOCOL: "SASL_PLAINTEXT"
+      KAFKA_MECHANISM: "PLAIN"
+      KAFKA_BROKER_1: "kafka:9092"
+      KAFKA_BROKER_2: "kafka:9092"
+      KAFKA_BROKER_3: "kafka:9092"
+    ports:
+      - "7007:7007"
+    volumes:
+      - ./secrets/username:/var/pod/secret/username:ro
+      - ./secrets/password:/var/pod/secret/password:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - ecommerce_network
+      
+networks:
+  ecommerce_network:
+    external: true
+    name: ecommerce_network

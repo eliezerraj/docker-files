@@ -1,7 +1,6 @@
 services:
   db-01:
     image: postgres:16
-    restart: always
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -10,10 +9,11 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data_01:/var/lib/postgresql/data
+    networks:
+      - ecommerce_network
 
   db-02:
     image: postgres:16
-    restart: always
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -22,10 +22,11 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data_02:/var/lib/postgresql/data
+    networks:
+      - ecommerce_network
 
   db-03-vector:
     image: pgvector/pgvector:pg16
-    restart: always
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
@@ -34,8 +35,15 @@ services:
       - "5434:5432"
     volumes:
       - postgres_data_03:/var/lib/postgresql/data
+    networks:
+      - ecommerce_network
 
 volumes:
   postgres_data_01:
   postgres_data_02:
   postgres_data_03:
+
+networks:
+  ecommerce_network:
+    external: true
+    name: ecommerce_network

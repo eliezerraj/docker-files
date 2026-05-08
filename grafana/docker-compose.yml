@@ -17,7 +17,7 @@ services:
       - '--enable-feature=native-histograms'
       - '--web.enable-remote-write-receiver'
     networks:
-      - grafana_network
+      - ecommerce_network
 
   tempo-init:
     image: alpine:latest
@@ -27,7 +27,7 @@ services:
     command: >
       sh -c "chown -R 10001:10001 /var/tempo && chmod -R 777 /var/tempo"
     networks:
-      - grafana_network
+      - ecommerce_network
 
   tempo:
     image: grafana/tempo:2.10.1
@@ -43,7 +43,7 @@ services:
     depends_on:
       - tempo-init
     networks:
-      - grafana_network
+      - ecommerce_network
 
   loki:
     image: grafana/loki:latest
@@ -54,7 +54,7 @@ services:
       - ./loki/loki.yml:/etc/loki/loki.yml
     command: -config.file=/etc/loki/loki.yml
     networks:
-      - grafana_network
+      - ecommerce_network
 
   grafana:
     image: grafana/grafana:latest
@@ -74,7 +74,7 @@ services:
       - tempo
       - loki
     networks:
-      - grafana_network
+      - ecommerce_network
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
@@ -91,7 +91,7 @@ services:
       - tempo
       - prometheus
     networks:
-      - grafana_network
+      - ecommerce_network
 
   alloy:
     image: grafana/alloy:latest
@@ -113,7 +113,7 @@ services:
     depends_on:
       - loki
     networks:
-      - grafana_network
+      - ecommerce_network
 
 volumes:
   grafana_data:
@@ -126,5 +126,6 @@ volumes:
     driver: local
 
 networks:
-  grafana_network:
-    driver: bridge
+  ecommerce_network:
+    external: true
+    name: ecommerce_network

@@ -8,13 +8,13 @@ services:
       # ---- KRaft Settings (Replaces Zookeeper) ----
       - KAFKA_NODE_ID=1
       - KAFKA_PROCESS_ROLES=broker,controller
-      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@localhost:9093
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
       - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
       - CLUSTER_ID=MkU3OEVBNTcwNTJDRDRERU
-      
+
       # ---- Listeners ----
-      - KAFKA_LISTENERS=EXTERNAL://:9092,CONTROLLER://:9093
-      - KAFKA_ADVERTISED_LISTENERS=EXTERNAL://localhost:9092 # Advertised to clients as localhost:9092 or pi-home-01:9092
+      - KAFKA_LISTENERS=EXTERNAL://0.0.0.0:9092,CONTROLLER://:9093
+      - KAFKA_ADVERTISED_LISTENERS=EXTERNAL://kafka:9092
       - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=EXTERNAL:SASL_PLAINTEXT,CONTROLLER:PLAINTEXT
       - KAFKA_INTER_BROKER_LISTENER_NAME=EXTERNAL
 
@@ -29,3 +29,10 @@ services:
 
     volumes:
       - ./kafka_server_jaas.conf:/etc/kafka/kafka_server_jaas.conf
+    networks:
+      - ecommerce_network
+
+networks:
+  ecommerce_network:
+    external: true
+    name: ecommerce_network

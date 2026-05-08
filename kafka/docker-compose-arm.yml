@@ -29,3 +29,10 @@ services:
 
     volumes:
       - ./kafka_server_jaas.conf:/etc/kafka/kafka_server_jaas.conf
+    networks:
+      - ecommerce_network
+
+networks:
+  ecommerce_network:
+    external: true
+    name: ecommerce_network
