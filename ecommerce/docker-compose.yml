@@ -170,6 +170,11 @@ services:
       HOST_SERVICE_00: "go-order"
       CLIENT_HTTP_TIMEOUT_00: "5"
 
+      NAME_SERVICE_01: "go-data-sink"
+      URL_SERVICE_01: "http://go-data-sink:7008"
+      HOST_SERVICE_01: "go-data-sink"
+      CLIENT_HTTP_TIMEOUT_01: "5"
+
       KAFKA_USER: "admin"
       KAFKA_PASSWORD: "admin"
       KAFKA_CLIENT_ID: "GO-CLEARANCE-LOCAL"
