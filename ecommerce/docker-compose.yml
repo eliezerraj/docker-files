@@ -250,7 +250,6 @@ services:
       URL_SERVICE_03: http://go-worker-event:7007
       HOST_SERVICE_03: go-worker-event
       CLIENT_HTTP_TIMEOUT_03: 5
-
     ports:
       - "7004:7004"
     volumes:
@@ -336,10 +335,9 @@ services:
       WINDOW_SIZE: "30"
 
       LOG_LEVEL: "info"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4318/v1/traces"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
       OTEL_STDOUT_LOG_GROUP: "true"
       LOG_GROUP: "/mnt/c/Eliezer/log/py-stat-inference-a2a.log"
-
     ports:
       - "8100:8100"
     extra_hosts:
@@ -378,10 +376,9 @@ services:
       AGENT_REGISTER_URL_00: "http://py-stat-inference-a2a:8100"
 
       LOG_LEVEL: "info"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4318/v1/traces"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
       OTEL_STDOUT_LOG_GROUP: "true"
       LOG_GROUP: "/mnt/c/Eliezer/log/py-cart-a2a.log"
-
     ports:
       - "8001:8001"
     extra_hosts:
@@ -417,16 +414,14 @@ services:
       # go-data-sink service
       URL_SERVICE_01: "http://go-data-sink:7008"
 
-
       # agent py-stat-a2a
       AGENT_RESGISTER_NAME_00: "py-stat-inference-a2a.docker-compose"
       AGENT_REGISTER_URL_00: "http://py-stat-inference-a2a:8100"
 
       LOG_LEVEL: "info"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4318/v1/traces"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
       OTEL_STDOUT_LOG_GROUP: "true"
       LOG_GROUP: "/mnt/c/Eliezer/log/py-inventory-a2a.log"
-
     ports:
       - "8000:8000"
     extra_hosts:

@@ -56,20 +56,34 @@ services:
     networks:
       - ecommerce_network
 
+  grafana-init:
+    image: alpine:latest
+    user: root
+    volumes:
+      - grafana_data:/var/lib/grafana
+    command: >
+      sh -c "chown -R 472:472 /var/lib/grafana && chmod -R u+rwX,g+rwX /var/lib/grafana"
+    networks:
+      - ecommerce_network
+
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     ports:
       - "3000:3000"
     environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-      - GF_AUTH_DISABLE_LOGIN_FORM=true
-      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_AUTH_DISABLE_LOGIN_FORM=false
+      - GF_USERS_ALLOW_SIGN_UP=true
+      - GF_PLUGINS_PLUGIN_ADMIN_ENABLED=true
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
     depends_on:
+      - grafana-init
       - prometheus
       - tempo
       - loki
