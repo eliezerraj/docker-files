@@ -372,7 +372,7 @@ services:
       URL_SERVICE_00: "http://go-data-sink:7008"
 
       # agent py-stat-a2a
-      AGENT_RESGISTER_NAME_00: "py-stat-inference-a2a.docker-compose"
+      AGENT_REGISTER_NAME_00: "py-stat-inference-a2a.docker-compose"
       AGENT_REGISTER_URL_00: "http://py-stat-inference-a2a:8100"
 
       LOG_LEVEL: "info"
@@ -415,7 +415,7 @@ services:
       URL_SERVICE_01: "http://go-data-sink:7008"
 
       # agent py-stat-a2a
-      AGENT_RESGISTER_NAME_00: "py-stat-inference-a2a.docker-compose"
+      AGENT_REGISTER_NAME_00: "py-stat-inference-a2a.docker-compose"
       AGENT_REGISTER_URL_00: "http://py-stat-inference-a2a:8100"
 
       LOG_LEVEL: "info"
