@@ -74,7 +74,7 @@ services:
       LOG_GROUP: "/mnt/c/Eliezer/log/go-inventory.log"
 
       NAME_SERVICE_00: "go-data-sink"
-      URL_SERVICE_00: "http://go-data-sink:7008"
+      URL_SERVICE_00: "http://go-data-sink:7008/v1/data-sink"
       HOST_SERVICE_00: "go-data-sink"
       CLIENT_HTTP_TIMEOUT_00: "5"
     ports:
@@ -120,7 +120,7 @@ services:
       LOG_GROUP: "/mnt/c/Eliezer/log/go-cart.log"
 
       NAME_SERVICE_00: "go-inventory"
-      URL_SERVICE_00: "http://go-inventory:7000"
+      URL_SERVICE_00: "http://go-inventory:7000/v1/inventory"
       HOST_SERVICE_00: "go-inventory"
       CLIENT_HTTP_TIMEOUT_00: "5"
     ports:
@@ -166,12 +166,12 @@ services:
       LOG_GROUP: "/mnt/c/Eliezer/log/go-clearance.log"
 
       NAME_SERVICE_00: "go-order"
-      URL_SERVICE_00: "http://go-order:7004"
+      URL_SERVICE_00: "http://go-order:7004/v1/order"
       HOST_SERVICE_00: "go-order"
       CLIENT_HTTP_TIMEOUT_00: "5"
 
       NAME_SERVICE_01: "go-data-sink"
-      URL_SERVICE_01: "http://go-data-sink:7008"
+      URL_SERVICE_01: "http://go-data-sink:7008/v1/data-sink"
       HOST_SERVICE_01: "go-data-sink"
       CLIENT_HTTP_TIMEOUT_01: "5"
 
@@ -232,22 +232,22 @@ services:
       LOG_GROUP: "/mnt/c/Eliezer/log/go-order.log"
 
       NAME_SERVICE_00: go-cart
-      URL_SERVICE_00: http://go-cart:7001
+      URL_SERVICE_00: http://go-cart:7001/v1/cart
       HOST_SERVICE_00: go-cart
       CLIENT_HTTP_TIMEOUT_00: 5
 
       NAME_SERVICE_01: go-inventory
-      URL_SERVICE_01: http://go-inventory:7000
+      URL_SERVICE_01: http://go-inventory:7000/v1/inventory
       HOST_SERVICE_01: go-inventory
       CLIENT_HTTP_TIMEOUT_01: 5
 
       NAME_SERVICE_02: go-clearance
-      URL_SERVICE_02: http://go-clearance:7003
+      URL_SERVICE_02: http://go-clearance:7003/v1/clearance
       HOST_SERVICE_02: go-clearance
       CLIENT_HTTP_TIMEOUT_02: 5
 
       NAME_SERVICE_03: go-worker-event
-      URL_SERVICE_03: http://go-worker-event:7007
+      URL_SERVICE_03: http://go-worker-event:7007/v1/worker-event
       HOST_SERVICE_03: go-worker-event
       CLIENT_HTTP_TIMEOUT_03: 5
     ports:
@@ -369,7 +369,7 @@ services:
       REQUEST_TIMEOUT: "29"
 
       # go-data-sink service
-      URL_SERVICE_00: "http://go-data-sink:7008"
+      URL_SERVICE_00: "http://go-data-sink:7008/v1/data-sink"
 
       # agent py-stat-a2a
       AGENT_REGISTER_NAME_00: "py-stat-inference-a2a.docker-compose"
@@ -410,9 +410,9 @@ services:
       REQUEST_TIMEOUT: "29"
 
       # go-inventory service
-      URL_SERVICE_00: "http://go-inventory:7000"
+      URL_SERVICE_00: "http://go-inventory:7000/v1/inventory"
       # go-data-sink service
-      URL_SERVICE_01: "http://go-data-sink:7008"
+      URL_SERVICE_01: "http://go-data-sink:7008/v1/data-sink"
 
       # agent py-stat-a2a
       AGENT_REGISTER_NAME_00: "py-stat-inference-a2a.docker-compose"
