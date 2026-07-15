@@ -1,0 +1,17 @@
+services:
+  tei-server:
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.6
+    container_name: tei-server
+    ports:
+      - "6500:80"
+    networks:
+      - ecommerce_network
+    volumes:
+      - ./data:/data
+    environment:
+      - MODEL_ID=BAAI/bge-large-en-v1.5
+
+networks:
+  ecommerce_network:
+    external: true
+    name: ecommerce_network

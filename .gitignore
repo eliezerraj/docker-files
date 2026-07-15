@@ -3,3 +3,5 @@
 #
 # Binaries for programs and plugins
 grafana/tempo/data
+
+tei-hugging-face/data
