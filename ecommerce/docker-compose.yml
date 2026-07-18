@@ -468,6 +468,73 @@ services:
     networks:
       - ecommerce_network
 
+  tei-server:
+    profiles: ["tei-server"]
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.6
+    container_name: tei-server
+    ports:
+      - "6500:80"
+    networks:
+      - ecommerce_network
+    volumes:
+      - ./data:/data
+    environment:
+      - MODEL_ID=BAAI/bge-large-en-v1.5
+
+  py-mcp-inventory-server:
+    profiles: ["py-mcp-inventory-server"]
+    image: py-mcp-inventory-server
+    container_name: py-mcp-inventory-server
+    ports:
+      - "5000:5000"
+    networks:
+      - ecommerce_network
+    volumes:
+      - ./data:/data
+    environment:
+      VERSION: "0.1"
+      ACCOUNT: "aws:999999999"
+      APP_NAME: "py-mcp-inventory-server.localhost"
+      HOST: "0.0.0.0"
+      PORT: "5000"
+      SESSION_TIMEOUT: "700"
+      LOG_LEVEL: "INFO"
+
+      INVENTORY_URL: "http://go-inventory:7000/v1/inventory"
+      DATA_SINK_URL: "http://go-data-sink:7008/v1/data-sink"
+
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
+      OTEL_STDOUT_LOG_GROUP: "true"
+      LOG_GROUP: "/mnt/c/Eliezer/log/py-mcp-inventory-server.log"
+      MCP_VALIDATE_CONTEXT: "false"
+
+  py-mcp-sales-server:
+    profiles: ["py-mcp-sales-server"]
+    image: py-mcp-sales-server
+    container_name: py-mcp-sales-server
+    ports:
+      - "5001:5001"
+    networks:
+      - ecommerce_network
+    volumes:
+      - ./data:/data
+    environment:
+      VERSION: "0.1"
+      ACCOUNT: "aws:999999999"
+      APP_NAME: "py-mcp-sales-server.localhost"
+      HOST: "0.0.0.0"
+      PORT: "5001"
+      SESSION_TIMEOUT: "700"
+      LOG_LEVEL: "INFO"
+
+      ORDER_URL: "http://go-order:7004/v1/order"
+      DATA_SINK_URL: "http://go-data-sink:7008/v1/data-sink"
+
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
+      OTEL_STDOUT_LOG_GROUP: "true"
+      LOG_GROUP: "/mnt/c/Eliezer/log/py-mcp-sales-server.log"
+      MCP_VALIDATE_CONTEXT: "false"
+
 networks:
   ecommerce_network:
     external: true
