@@ -314,23 +314,70 @@ services:
     networks:
       - ecommerce_network
 
+  go-federated-registry:
+    profiles: ["go-federated-registry"]
+    container_name: go-federated-registry
+    depends_on:
+    - tei-server
+    build:
+      context: ../../go-federated-registry-service
+      dockerfile: Dockerfile
+    image: go-federated-registry:local
+    pull_policy: never
+    environment:
+      VERSION: "1.0"
+      ACCOUNT: "localhost"
+      APP_NAME: "go-federated-registry.docker-compose"
+      PORT: "6000"
+      ENV: "dev"
+
+      DB_HOST: "db-03-vector"
+      DB_PORT: "5432"
+      DB_NAME: "postgres"
+      DB_MAX_CONNECTION: "30"
+      CTX_TIMEOUT: "10"
+
+      NAME_SERVICE_00: "embedding-vector-service"
+      URL_SERVICE_00: "http://tei-server:80"
+      HOST_SERVICE_00: "tei-server"
+      CLIENT_HTTP_TIMEOUT_00: "10"
+
+      LOG_LEVEL: "info"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
+      OTEL_METRICS: "true"
+      OTEL_TRACES: "true"
+      OTEL_STDOUT_TRACER: "false"
+      OTEL_LOGS: "true"
+      OTEL_STDOUT_LOG_GROUP: "true"
+      LOG_GROUP: "/mnt/c/Eliezer/log/go-federated-registry.log"
+
+    ports:
+      - "6000:6000"
+    volumes:
+      - ./secrets/username:/var/pod/secret/username:ro
+      - ./secrets/password:/var/pod/secret/password:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - ecommerce_network
+
   py-stat-inference-a2a:
     profiles: ["py-stat-inference-a2a"]
     container_name: py-stat-inference-a2a
     build:
       context: ../../py-stat-inference-a2a
       dockerfile: Dockerfile
-    image: py-stat-inference-a2a:docker-compose
+    image: py-stat-inference-a2a:local
     pull_policy: never
     environment:
-      VERSION: "1.0"
+      VERSION: "1.1"
       ACCOUNT: "localhost"
       APP_NAME: "py-stat-inference-a2a.docker-compose"
       PORT: "8100"
       ENV: "dev"
       HOST: "py-stat-inference-a2a"
 
-      URL_AGENT: "http://py-stat-inference-a2a:8100"
+      URL_AGENT: "http://127.0.0.1:8100"
       SESSION_TIMEOUT: "3000"
       WINDOW_SIZE: "30"
 
@@ -483,8 +530,11 @@ services:
 
   py-mcp-inventory-server:
     profiles: ["py-mcp-inventory-server"]
-    image: py-mcp-inventory-server
     container_name: py-mcp-inventory-server
+    build:
+      context: ../../py-mcp-inventory-server
+      dockerfile: Dockerfile
+    image: py-mcp-inventory-server:local
     ports:
       - "5000:5000"
     networks:
@@ -510,8 +560,11 @@ services:
 
   py-mcp-sales-server:
     profiles: ["py-mcp-sales-server"]
-    image: py-mcp-sales-server
     container_name: py-mcp-sales-server
+    build:
+      context: ../../py-mcp-sales-server
+      dockerfile: Dockerfile
+    image: py-mcp-sales-server:local
     ports:
       - "5001:5001"
     networks:
