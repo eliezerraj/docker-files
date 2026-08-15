@@ -370,14 +370,14 @@ services:
     image: py-stat-inference-a2a:local
     pull_policy: never
     environment:
-      VERSION: "1.1"
+      VERSION: "1.0.0"
       ACCOUNT: "localhost"
       APP_NAME: "py-stat-inference-a2a.docker-compose"
-      PORT: "8100"
+      PORT: "8000"
       ENV: "dev"
       HOST: "py-stat-inference-a2a"
 
-      URL_AGENT: "http://127.0.0.1:8100"
+      URL_AGENT: "http://py-stat-inference-a2a:8000"
       SESSION_TIMEOUT: "3000"
       WINDOW_SIZE: "30"
 
@@ -386,7 +386,7 @@ services:
       OTEL_STDOUT_LOG_GROUP: "true"
       LOG_GROUP: "/mnt/c/Eliezer/log/py-stat-inference-a2a.log"
     ports:
-      - "8100:8100"
+      - "8000:8000"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -396,6 +396,7 @@ services:
     profiles: ["py-cart-a2a"]
     depends_on:
     - py-stat-inference-a2a
+    - go-data-sink
     container_name: py-cart-a2a
     build:
       context: ../../py-cart-a2a
@@ -403,16 +404,16 @@ services:
     image: py-cart-a2a:local
     pull_policy: never
     environment:
-      VERSION: "1.0"
+      VERSION: "1.0.0"
       ACCOUNT: "localhost"
       APP_NAME: "py-cart-a2a.docker-compose"
       HOST: "py-cart-a2a"
       PORT: "8001"
       ENV: "dev"
 
-      URL_AGENT: "http://py-cart-a2a:8001"
+      URL_AGENT: "http://127.0.0.1:8001"
       SESSION_TIMEOUT: "3000"
-      WINDOW_SIZE: "14"
+      WINDOW_SIZE: "7"
       REQUEST_TIMEOUT: "29"
 
       # go-data-sink service
@@ -420,7 +421,7 @@ services:
 
       # agent py-stat-a2a
       AGENT_REGISTER_NAME_00: "py-stat-inference-a2a.docker-compose"
-      AGENT_REGISTER_URL_00: "http://py-stat-inference-a2a:8100"
+      AGENT_REGISTER_URL_00: "http://py-stat-inference-a2a:8000"
 
       LOG_LEVEL: "info"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
@@ -448,10 +449,10 @@ services:
       ACCOUNT: "localhost"
       APP_NAME: "py-inventory-a2a.docker-compose"
       HOST: "py-inventory-a2a"
-      PORT: "8000"
+      PORT: "8002"
       ENV: "dev"
 
-      URL_AGENT: "http://py-inventory-a2a:8000"
+      URL_AGENT: "http://py-inventory-a2a:8002"
       SESSION_TIMEOUT: "3000"
       WINDOW_SIZE: "30"
       REQUEST_TIMEOUT: "29"
@@ -463,14 +464,14 @@ services:
 
       # agent py-stat-a2a
       AGENT_REGISTER_NAME_00: "py-stat-inference-a2a.docker-compose"
-      AGENT_REGISTER_URL_00: "http://py-stat-inference-a2a:8100"
+      AGENT_REGISTER_URL_00: "http://py-stat-inference-a2a:8000"
 
       LOG_LEVEL: "info"
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
       OTEL_STDOUT_LOG_GROUP: "true"
       LOG_GROUP: "/mnt/c/Eliezer/log/py-inventory-a2a.log"
     ports:
-      - "8000:8000"
+      - "8002:8002"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -492,9 +493,9 @@ services:
       ACCOUNT: "localhost"
       APP_NAME: "py-planner-a2a.docker-compose"
       HOST: "py-planner-a2a"
-      PORT: "8102"
+      PORT: "8003"
       ENV: "dev"
-      URL_AGENT: "http://py-planner-a2a:8102"
+      URL_AGENT: "http://py-planner-a2a:8003"
 
       WINDOW_SIZE: "30"
       SESSION_TIMEOUT: "3000"
@@ -509,7 +510,7 @@ services:
       OTEL_STDOUT_LOG_GROUP: "true"
       LOG_GROUP: "/mnt/c/Eliezer/log/py-planner-a2a.log"
     ports:
-      - "8102:8102"
+      - "8003:8003"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -549,6 +550,7 @@ services:
       PORT: "5000"
       SESSION_TIMEOUT: "700"
       LOG_LEVEL: "INFO"
+      MCP_VALIDATE_CONTEXT: "false"
 
       INVENTORY_URL: "http://go-inventory:7000/v1/inventory"
       DATA_SINK_URL: "http://go-data-sink:7008/v1/data-sink"
@@ -556,7 +558,6 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
       OTEL_STDOUT_LOG_GROUP: "true"
       LOG_GROUP: "/mnt/c/Eliezer/log/py-mcp-inventory-server.log"
-      MCP_VALIDATE_CONTEXT: "false"
 
   py-mcp-sales-server:
     profiles: ["py-mcp-sales-server"]
