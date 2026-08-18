@@ -1,3 +1,6 @@
+#
+# Setup local host as broker:kafka:29092 SASL_PLAINTEXT PLAIN admin admin
+#
 services:
   postgres:
     image: postgres:14
@@ -6,8 +9,12 @@ services:
       POSTGRES_DB: conduktor
       POSTGRES_USER: conduktor
       POSTGRES_PASSWORD: conduktor
+    ports:
+      - "5499:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - ecommerce_network
 
   conduktor:
     image: conduktor/conduktor-platform:latest
@@ -18,27 +25,16 @@ services:
       - "8083:8080"
     environment:
       CDK_DATABASE_URL: "postgresql://conduktor:conduktor@postgres:5432/conduktor"
-
       CDK_ORGANIZATION_NAME: "local-org"
       CDK_ADMIN_EMAIL: "admin@local.io"
       CDK_ADMIN_PASSWORD: "admin123"
-
-      # --- Confluent Cloud Cluster Config ---
-      #CDK_CLUSTERS_0_ID: "pi-home-01.architecture.caradhras.io"
-      #CDK_CLUSTERS_0_NAME: "pi-home-01.architecture.caradhras.io"
-      #CDK_CLUSTERS_0_BOOTSTRAPSERVERS: "pi-home-01.architecture.caradhras.io:9092"
-      #CDK_CLUSTERS_0_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
-      #CDK_CLUSTERS_0_SASL_MECHANISM: "PLAIN"
-      #CDK_CLUSTERS_0_SASL_USERNAME: "admin"
-      #CDK_CLUSTERS_0_SASL_PASSWORD: "admin"
-
-      CDK_CLUSTERS_0_ID: "msk-arch-01"
-      CDK_CLUSTERS_0_NAME: "msk-arch-01"
-      CDK_CLUSTERS_0_BOOTSTRAPSERVERS: "b-1.mskarch01.x25pj7.c3.kafka.us-east-2.amazonaws.com:9096,b-3.mskarch01.x25pj7.c3.kafka.us-east-2.amazonaws.com:9096,b-2.mskarch01.x25pj7.c3.kafka.us-east-2.amazonaws.com:9096 "
-      CDK_CLUSTERS_0_SECURITY_PROTOCOL: "SASL_SSL"
-      CDK_CLUSTERS_0_SASL_MECHANISM: "SCRAM-SHA-512"
-      CDK_CLUSTERS_0_SASL_USERNAME: "admin"
-      CDK_CLUSTERS_0_SASL_PASSWORD: "admin"
+    networks:
+      - ecommerce_network
 
 volumes:
   pgdata:
+
+networks:
+  ecommerce_network:
+    external: true
+    name: ecommerce_network

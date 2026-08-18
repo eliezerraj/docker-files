@@ -1,9 +1,22 @@
 ## Start
 
+Create a docker network
+
+```
+docker network create kafka-network
+```
+
+
+```
 docker compose up -d
 docker compose down
-
+```
 ## Connect
 
+```
 http://localhost:8083
+```
 
+## Test
+
+![alt text](image.png)

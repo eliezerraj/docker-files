@@ -1,17 +1,39 @@
-## Start
+## Commands
+
+```sh
+# Start
 docker compose up -d
 
-## Stop and Remove everything
+# Stop and Remove everything
 docker compose down -v
 
-## Prune any orphaned volumes
+# Prune any orphaned volumes
 docker volume prune -f
+```
+## Broker
+
+```sh
+#external
+localhost:9092
+
+#inside docker network (using consuktor)
+kafka:29092
+```
+
+## Tester
+
+```sh
+./kafka/tester
+
+go run .
+```
+
 
 ## for docker-compose running other machine
-
+```
     services:
     kafka:
-        image: apache/kafka:4.0.1
+        image: apache/kafka:4.1.0
         container_name: kafka
         ports:
         - "9092:9092"
@@ -40,3 +62,4 @@ docker volume prune -f
 
         volumes:
         - ./kafka_server_jaas.conf:/etc/kafka/kafka_server_jaas.conf
+```
