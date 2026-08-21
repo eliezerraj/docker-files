@@ -18,7 +18,7 @@ type Payload struct {
 }
 
 func main() {
-    topic := "topic.local.test"
+    topic := "topic.local.test.01"
     mechanism := plain.Mechanism{Username: "admin", Password: "admin"}
     brokers := []string{"localhost:9092"}
 
@@ -77,7 +77,7 @@ func main() {
     }); err != nil {
         log.Fatalf("write failed: %v", err)
     } else {
-        log.Println("message written to kafka")
+        log.Println("message written to kafka:" , " key: ", key, " value: ", string(payload_bytes))
     }
 
     fmt.Println("Kafka write succeeded")
