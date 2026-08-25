@@ -15,6 +15,14 @@ docker compose down
 ```
 http://localhost:8083
 ```
+## Setup
+
+```
+# add under advanced properties
+request.timeout.ms=30000
+default.api.timeout.ms=60000
+```
+
 
 ## Test
 
