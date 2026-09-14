@@ -1,3 +1,4 @@
+# Create a network: sudo docker network create ecommerce_network
 services:
   db-01:
     image: postgres:16

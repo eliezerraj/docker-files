@@ -1,4 +1,5 @@
 # Running as localhost:9092
+# Create a network: sudo docker network create ecommerce_network
 services:
   kafka:
     image: apache/kafka:4.1.0

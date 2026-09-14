@@ -28,7 +28,6 @@ kafka:29092
 go run .
 ```
 
-
 ## for docker-compose running other machine
 ```
     services:

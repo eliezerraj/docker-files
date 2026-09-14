@@ -1,82 +1,121 @@
 services:
-  go-data-sink:
-    profiles: ["go-data-sink"]
-    container_name: go-data-sink
+
+  go-authorizer-v2:
+    profiles: ["go-authorizer-v2"]
+    container_name: go-authorizer-v2
     build:
-      context: ../../go-data-sink
+      context: ../../go-authorizer-v2
       dockerfile: Dockerfile
-    image: go-data-sink:local
+    image: go-authorizer-v2:latest
     pull_policy: never
     environment:
 
-      VERSION: "1.0"
-      ACCOUNT: "localhost"
-      APP_NAME: "go-data-sink.docker-compose"
-      PORT: "7008"
+      APP_NAME: "go-authorizer-v2"
+      VERSION: "2.0"
+      ACCOUNT: "local:docker-composer"
       ENV: "dev"
+      TYPE: "webserver"
 
-      DB_HOST: "db-02"
+      HTTP_TIMEOUT: "120s"
+      HTTP_KEEP_ALIVE: "120s"
+      HTTP_READTIMEOUT: "120s"
+      HTTP_WRITETIMEOUT: "120s"
+      HTTP_IDLECONNTIMEOUT: "120s"
+      HTTP_MAXIDLECONNS: "2"
+      HTTP_MAXIDLECONNSPERHOST: "2"
+      HTTP_MAXCONNSPERHOST: "2"
+      HTTP_PORT: "7100"
+      READ_BUFFER_SIZE: "12288"
+      DISABLE_STARTUP_MESSAGE: "true"
+
+      RSA_PRIVATE_KEY_PATH: "/var/keys/rsa_private_key.pem"
+      RSA_PUBLIC_KEY_PATH: "/var/keys/rsa_public_key.pem"
+      TOKEN_TTL: "36000s"
+      CURRENT_KID: "go-authorizer-v2-key-2026-09"
+
+      DB_HOST: "db-01"
       DB_PORT: "5432"
+      DB_USERNAME: "postgres"
+      DB_PASSWORD: "postgres"
       DB_NAME: "postgres"
-      DB_MAX_CONNECTION: "30"
-      CTX_TIMEOUT: "10"
+      DB_SCHEMA: "public"
+      DATABASE_QUERY_TRACER: "false"
+      DB_MAX_CONNS: "10"
+      DB_MIN_CONNS: "5"
 
-      LOG_LEVEL: "info"
+      LOG_LEVEL: "debug"
+      LOG_MODE: "json"
+
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
-      OTEL_METRICS: "true"
-      OTEL_TRACES: "true"
       OTEL_STDOUT_TRACER: "false"
-      OTEL_LOGS: "true"
-      OTEL_STDOUT_LOG_GROUP: "true"
-      LOG_GROUP: "/mnt/c/Eliezer/log/go-data-sink.log"
+      OTEL_COLLECTOR: "false"
+      OTEL_METRICS_PORT: "8000"
 
     ports:
-      - "7008:7008"
+      - "7100:7100"
     volumes:
-      - ./secrets/username:/var/pod/secret/username:ro
-      - ./secrets/password:/var/pod/secret/password:ro
+      - ./keys/rsa_private_key.pem:/var/keys/rsa_private_key.pem:ro
+      - ./keys/rsa_public_key.pem:/var/keys/rsa_public_key.pem:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
       - ecommerce_network
   
-  go-inventory:
-    profiles: ["go-inventory"]
+  go-inventory-v2:
+    profiles: ["go-inventory-v2"]
     depends_on:
-    - go-data-sink
-    container_name: go-inventory
+    - go-authorizer-v2
+    container_name: go-inventory-v2
     build:
-      context: ../../go-inventory
+      context: ../../go-inventory-v2
       dockerfile: Dockerfile
-    image: go-inventory:local
+    image: go-inventory-v2:latest
     pull_policy: never
+    
     environment:
-      VERSION: "1.0"
-      ACCOUNT: "localhost"
-      APP_NAME: "go-inventory.docker-compose"
-      PORT: "7000"
+      APP_NAME: "go-inventory-v2"
+      VERSION: "2.0"
+      ACCOUNT: "local:docker-composer"
       ENV: "dev"
+      TYPE: "webserver"
+
+      HTTP_TIMEOUT: "120s"
+      HTTP_KEEP_ALIVE: "120s"
+      HTTP_READTIMEOUT: "120s"
+      HTTP_WRITETIMEOUT: "120s"
+      HTTP_IDLECONNTIMEOUT: "120s"
+      HTTP_MAXIDLECONNS: "2"
+      HTTP_MAXIDLECONNSPERHOST: "2"
+      HTTP_MAXCONNSPERHOST: "2"
+      HTTP_PORT: "7000"
+      READ_BUFFER_SIZE: "12288"
+      DISABLE_STARTUP_MESSAGE: "true"
 
       DB_HOST: "db-01"
       DB_PORT: "5432"
+      DB_USERNAME: "postgres"
+      DB_PASSWORD: "postgres"
       DB_NAME: "postgres"
-      DB_MAX_CONNECTION: "30"
-      CTX_TIMEOUT: "10"
+      DB_SCHEMA: "public"
+      DATABASE_QUERY_TRACER: "false"
+      DB_MAX_CONNS: "10"
+      DB_MIN_CONNS: "5"
 
-      LOG_LEVEL: "info"
+      LOG_LEVEL: "debug"
+      LOG_MODE: "json"
+
+      AUTHORIZATION_DRY_RUN: "true"
+      AUTHORIZATION_TIMEOUT: "15s"
+      AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
+      AUTHORIZATION_HEADER_KEY: "Authorization"
+      AUTHORIZATION_REQUIRED_HEADER: "false"
+      ALLOWEDSCOPES: "workload01:db-01,workload01:db-02"
+
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
-      OTEL_METRICS: "true"
-      OTEL_TRACES: "true"
       OTEL_STDOUT_TRACER: "false"
-      OTEL_PROPAGATORS: "xray,tracecontext,b3,baggage"
-      OTEL_LOGS: "true"
-      OTEL_STDOUT_LOG_GROUP: "true"
-      LOG_GROUP: "/mnt/c/Eliezer/log/go-inventory.log"
+      OTEL_COLLECTOR: "false"
+      OTEL_METRICS_PORT: "8000"
 
-      NAME_SERVICE_00: "go-data-sink"
-      URL_SERVICE_00: "http://go-data-sink:7008/v1/data-sink"
-      HOST_SERVICE_00: "go-data-sink"
-      CLIENT_HTTP_TIMEOUT_00: "5"
     ports:
       - "7000:7000"
     volumes:
@@ -86,108 +125,71 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - ecommerce_network
-      
-  go-cart:
-    profiles: ["go-cart"]
+
+  go-payment-v2:
+    profiles: ["go-payment-v2"]
     depends_on:
-    - go-inventory
-    container_name: go-cart
+    - go-authorizer-v2
+    container_name: go-payment-v2
     build:
-      context: ../../go-cart
+      context: ../../go-payment-v2
       dockerfile: Dockerfile
-    image: go-cart:local
+    image: go-payment-v2:latest
     pull_policy: never
+    
     environment:
-      VERSION: "1.0"
-      ACCOUNT: "localhost"
-      APP_NAME: "go-cart.docker-compose"
-      PORT: "7001"
-
+      APP_NAME: "go-payment-v2"
+      VERSION: "2.0"
+      ACCOUNT: "local:docker-composer"
       ENV: "dev"
-      DB_HOST: "db-02"
+      TYPE: "webserver"
+
+      HTTP_TIMEOUT: "120s"
+      HTTP_KEEP_ALIVE: "120s"
+      HTTP_READTIMEOUT: "120s"
+      HTTP_WRITETIMEOUT: "120s"
+      HTTP_IDLECONNTIMEOUT: "120s"
+      HTTP_MAXIDLECONNS: "2"
+      HTTP_MAXIDLECONNSPERHOST: "2"
+      HTTP_MAXCONNSPERHOST: "2"
+      HTTP_PORT: "7003"
+      READ_BUFFER_SIZE: "12288"
+      DISABLE_STARTUP_MESSAGE: "true"
+
+      DB_HOST: "db-01"
       DB_PORT: "5432"
+      DB_USERNAME: "postgres"
+      DB_PASSWORD: "postgres"
       DB_NAME: "postgres"
-      DB_MAX_CONNECTION: "30"
-      CTX_TIMEOUT: "10"
+      DB_SCHEMA: "public"
+      DATABASE_QUERY_TRACER: "false"
+      DB_MAX_CONNS: "10"
+      DB_MIN_CONNS: "5"
 
-      LOG_LEVEL: "info"
+      LOG_LEVEL: "debug"
+      LOG_MODE: "json"
+
+      AUTHORIZATION_DRY_RUN: "true"
+      AUTHORIZATION_TIMEOUT: "15s"
+      AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
+      AUTHORIZATION_HEADER_KEY: "Authorization"
+      AUTHORIZATION_REQUIRED_HEADER: "false"
+      ALLOWEDSCOPES: "workload01:db-01,workload01:db-02"
+
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
-      OTEL_METRICS: "true"
-      OTEL_TRACES: "true"
       OTEL_STDOUT_TRACER: "false"
-      OTEL_LOGS: "true"
-      OTEL_STDOUT_LOG_GROUP: "true"
-      LOG_GROUP: "/mnt/c/Eliezer/log/go-cart.log"
+      OTEL_COLLECTOR: "false"
+      OTEL_METRICS_PORT: "8000"
 
-      NAME_SERVICE_00: "go-inventory"
-      URL_SERVICE_00: "http://go-inventory:7000/v1/inventory"
-      HOST_SERVICE_00: "go-inventory"
-      CLIENT_HTTP_TIMEOUT_00: "5"
-    ports:
-      - "7001:7001"
-    volumes:
-      - ./secrets/username:/var/pod/secret/username:ro
-      - ./secrets/password:/var/pod/secret/password:ro
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    networks:
-      - ecommerce_network
+      KAFKA_EVENT_DRY_RUN: "true"
+      KAFKA_PRODUCER_NAME: 'payment-producer.local'
+      KAFKA_PRODUCER_BROKER: "kafka:29092"
+      KAFKA_PRODUCER_TOPIC: "payment.topic.01"
+      KAFKA_PRODUCER_PROTOCOL: "SASL_PLAINTEXT"
+      KAFKA_PRODUCER_MECHANISM: "PLAIN"
+      KAFKA_PRODUCER_USERNAME: "admin"
+      KAFKA_PRODUCER_PASSWORD: "admin"
 
-  go-clearance:
-    profiles: ["go-clearance"]
-    depends_on:
-    - go-cart
-    container_name: go-clearance
-    build:
-      context: ../../go-clearance
-      dockerfile: Dockerfile
-    image: go-clearance:local
-    pull_policy: never
-    environment:
-      VERSION: "1.0"
-      ACCOUNT: "localhost"
-      APP_NAME: "go-clearance.docker-compose"
-      PORT: "7003"
-      ENV: "dev"
-
-      DB_HOST: "db-02"
-      DB_PORT: "5432"
-      DB_NAME: "postgres"
-      DB_MAX_CONNECTION: "30"
-      CTX_TIMEOUT: "10"
-      
-      LOG_LEVEL: "info"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
-      OTEL_METRICS: "true"
-      OTEL_TRACES: "true"
-      OTEL_STDOUT_TRACER: "false"
-      OTEL_LOGS: "true"
-      OTEL_STDOUT_LOG_GROUP: "true"
-      LOG_GROUP: "/mnt/c/Eliezer/log/go-clearance.log"
-
-      NAME_SERVICE_00: "go-order"
-      URL_SERVICE_00: "http://go-order:7004/v1/order"
-      HOST_SERVICE_00: "go-order"
-      CLIENT_HTTP_TIMEOUT_00: "5"
-
-      NAME_SERVICE_01: "go-data-sink"
-      URL_SERVICE_01: "http://go-data-sink:7008/v1/data-sink"
-      HOST_SERVICE_01: "go-data-sink"
-      CLIENT_HTTP_TIMEOUT_01: "5"
-
-      KAFKA_USER: "admin"
-      KAFKA_PASSWORD: "admin"
-      KAFKA_CLIENT_ID: "GO-CLEARANCE-LOCAL"
-      KAFKA_PARTITION: "3"
-      KAFKA_REPLICATION: "1"
-      TOPIC_EVENT_00: "topic.clearance.local"
-
-      # Change from PLAINTEXT to SASL_PLAINTEXT to enable authentication
-      KAFKA_PROTOCOL: "SASL_PLAINTEXT"
-      KAFKA_MECHANISM: "PLAIN"
-      KAFKA_BROKER_1: "kafka:9092"
-      KAFKA_BROKER_2: "kafka:9092"
-      KAFKA_BROKER_3: "kafka:9092"
     ports:
       - "7003:7003"
     volumes:
@@ -198,60 +200,81 @@ services:
     networks:
       - ecommerce_network
 
-  go-order:
-    profiles: ["go-order"]
+  go-order-v2:
+    profiles: ["go-order-v2"]
     depends_on:
-    - go-inventory
-    - go-cart
-    container_name: go-order
+    - go-authorizer-v2
+    container_name: go-order-v2
     build:
-      context: ../../go-order
+      context: ../../go-order-v2
       dockerfile: Dockerfile
-    image: go-order:local
+    image: go-order-v2:latest
     pull_policy: never
+    
     environment:
-      VERSION: "1.0"
-      ACCOUNT: "localhost"
-      APP_NAME: "go-order.docker-compose"
-      PORT: "7004"
+      APP_NAME: "go-order-v2"
+      VERSION: "2.0"
+      ACCOUNT: "local:docker-composer"
       ENV: "dev"
+      TYPE: "worker"
 
-      DB_HOST: "db-01"
+      HTTP_TIMEOUT: "120s"
+      HTTP_KEEP_ALIVE: "120s"
+      HTTP_READTIMEOUT: "120s"
+      HTTP_WRITETIMEOUT: "120s"
+      HTTP_IDLECONNTIMEOUT: "120s"
+      HTTP_MAXIDLECONNS: "2"
+      HTTP_MAXIDLECONNSPERHOST: "2"
+      HTTP_MAXCONNSPERHOST: "2"
+      HTTP_PORT: "7001"
+      READ_BUFFER_SIZE: "12288"
+      DISABLE_STARTUP_MESSAGE: "true"
+
+      DB_HOST: "db-02"
       DB_PORT: "5432"
+      DB_USERNAME: "postgres"
+      DB_PASSWORD: "postgres"
       DB_NAME: "postgres"
-      DB_MAX_CONNECTION: "30"
-      CTX_TIMEOUT: "10"
+      DB_SCHEMA: "public"
+      DATABASE_QUERY_TRACER: "false"
+      DB_MAX_CONNS: "10"
+      DB_MIN_CONNS: "5"
 
-      LOG_LEVEL: "info"
+      LOG_LEVEL: "debug"
+      LOG_MODE: "json"
+
+      AUTHORIZATION_DRY_RUN: "true"
+      AUTHORIZATION_TIMEOUT: "15s"
+      AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
+      AUTHORIZATION_HEADER_KEY: "Authorization"
+      AUTHORIZATION_REQUIRED_HEADER: "false"
+      ALLOWEDSCOPES: "workload01:db-01,workload01:db-02"
+
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
-      OTEL_METRICS: "true"
-      OTEL_TRACES: "true"
       OTEL_STDOUT_TRACER: "false"
-      OTEL_LOGS: "true"
-      OTEL_STDOUT_LOG_GROUP: "true"
-      LOG_GROUP: "/mnt/c/Eliezer/log/go-order.log"
+      OTEL_COLLECTOR: "false"
+      OTEL_METRICS_PORT: "8000"
 
-      NAME_SERVICE_00: go-cart
-      URL_SERVICE_00: http://go-cart:7001/v1/cart
-      HOST_SERVICE_00: go-cart
-      CLIENT_HTTP_TIMEOUT_00: 5
+      INVENTORY_ENDPOINT: "http://go-inventory-v2:7000"
+      INVENTORY_URL_PATH: "/v1/product"
+      INVENTORY_ENDPOINT_TIMEOUT: "10s"
 
-      NAME_SERVICE_01: go-inventory
-      URL_SERVICE_01: http://go-inventory:7000/v1/inventory
-      HOST_SERVICE_01: go-inventory
-      CLIENT_HTTP_TIMEOUT_01: 5
+      PAYMENT_ENDPOINT: "http://go-payment-v2:7003"
+      PAYMENT_URL_PATH: "/v1/payment"
+      PAYMENT_ENDPOINT_TIMEOUT: "10s"
 
-      NAME_SERVICE_02: go-clearance
-      URL_SERVICE_02: http://go-clearance:7003/v1/clearance
-      HOST_SERVICE_02: go-clearance
-      CLIENT_HTTP_TIMEOUT_02: 5
+      KAFKA_EVENT_DRY_RUN: "true"
+      KAFKA_CONSUMER_NAME: "order-consumer.local"
+      KAFKA_CONSUMER_GROUP_ID: "order-consumer-group-01"
+      KAFKA_CONSUMER_BROKER: "kafka:29092"
+      KAFKA_CONSUMER_TOPIC: "payment.topic.01"
+      KAFKA_CONSUMER_PROTOCOL: "SASL_PLAINTEXT"
+      KAFKA_CONSUMER_MECHANISM: "PLAIN"
+      KAFKA_CONSUMER_USERNAME: "admin"
+      KAFKA_CONSUMER_PASSWORD: "admin"
 
-      NAME_SERVICE_03: go-worker-event
-      URL_SERVICE_03: http://go-worker-event:7007/v1/worker-event
-      HOST_SERVICE_03: go-worker-event
-      CLIENT_HTTP_TIMEOUT_03: 5
     ports:
-      - "7004:7004"
+      - "7001:7001"
     volumes:
       - ./secrets/username:/var/pod/secret/username:ro
       - ./secrets/password:/var/pod/secret/password:ro
@@ -259,335 +282,6 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - ecommerce_network
-
-  go-worker-event:
-    profiles: ["go-worker-event"]
-    container_name: go-worker-event
-    build:
-      context: ../../go-worker-event
-      dockerfile: Dockerfile
-    image: go-worker-event:local
-    pull_policy: never
-    environment:
-      VERSION: "1.0"
-      ACCOUNT: "localhost"
-      APP_NAME: "go-worker-event.docker-compose"
-      PORT: "7007"
-      ENV: "dev"
-
-      DB_HOST: "db-01"
-      DB_PORT: "5432"
-      DB_NAME: "postgres"
-      DB_MAX_CONNECTION: "30"
-      CTX_TIMEOUT: "10"
-
-      LOG_LEVEL: "info"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
-      OTEL_METRICS: "true"
-      OTEL_TRACES: "true"
-      OTEL_STDOUT_TRACER: "false"
-      OTEL_LOGS: "true"
-      OTEL_STDOUT_LOG_GROUP: "true"
-      LOG_GROUP: "/mnt/c/Eliezer/log/go-worker-event.log"
-
-      KAFKA_USER: "admin"
-      KAFKA_PASSWORD: "admin"
-      KAFKA_CLIENT_ID: "GO-WORKER-EVENT-LOCAL"
-      KAFKA_PARTITION: "3"
-      KAFKA_REPLICATION: "1"
-      KAFKA_GROUP_ID: "GROUP-WORKER-EVENT-LOCAL"
-      TOPIC_EVENT_00: "topic.clearance.local"
-
-      # Change from PLAINTEXT to SASL_PLAINTEXT to enable authentication
-      KAFKA_PROTOCOL: "SASL_PLAINTEXT"
-      KAFKA_MECHANISM: "PLAIN"
-      KAFKA_BROKER_1: "kafka:9092"
-      KAFKA_BROKER_2: "kafka:9092"
-      KAFKA_BROKER_3: "kafka:9092"
-    ports:
-      - "7007:7007"
-    volumes:
-      - ./secrets/username:/var/pod/secret/username:ro
-      - ./secrets/password:/var/pod/secret/password:ro
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    networks:
-      - ecommerce_network
-
-  go-federated-registry:
-    profiles: ["go-federated-registry"]
-    container_name: go-federated-registry
-    depends_on:
-    - tei-server
-    build:
-      context: ../../go-federated-registry-service
-      dockerfile: Dockerfile
-    image: go-federated-registry:local
-    pull_policy: never
-    environment:
-      VERSION: "1.0"
-      ACCOUNT: "localhost"
-      APP_NAME: "go-federated-registry.docker-compose"
-      PORT: "6000"
-      ENV: "dev"
-
-      DB_HOST: "db-03-vector"
-      DB_PORT: "5432"
-      DB_NAME: "postgres"
-      DB_MAX_CONNECTION: "30"
-      CTX_TIMEOUT: "10"
-
-      NAME_SERVICE_00: "embedding-vector-service"
-      URL_SERVICE_00: "http://tei-server:80"
-      HOST_SERVICE_00: "tei-server"
-      CLIENT_HTTP_TIMEOUT_00: "10"
-
-      LOG_LEVEL: "info"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
-      OTEL_METRICS: "true"
-      OTEL_TRACES: "true"
-      OTEL_STDOUT_TRACER: "false"
-      OTEL_LOGS: "true"
-      OTEL_STDOUT_LOG_GROUP: "true"
-      LOG_GROUP: "/mnt/c/Eliezer/log/go-federated-registry.log"
-
-    ports:
-      - "6000:6000"
-    volumes:
-      - ./secrets/username:/var/pod/secret/username:ro
-      - ./secrets/password:/var/pod/secret/password:ro
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    networks:
-      - ecommerce_network
-
-  py-stat-inference-a2a:
-    profiles: ["py-stat-inference-a2a"]
-    container_name: py-stat-inference-a2a
-    build:
-      context: ../../py-stat-inference-a2a
-      dockerfile: Dockerfile
-    image: py-stat-inference-a2a:local
-    pull_policy: never
-    environment:
-      VERSION: "1.0.0"
-      ACCOUNT: "localhost"
-      APP_NAME: "py-stat-inference-a2a.docker-compose"
-      PORT: "8000"
-      ENV: "dev"
-      HOST: "py-stat-inference-a2a"
-
-      URL_AGENT: "http://py-stat-inference-a2a:8000"
-      SESSION_TIMEOUT: "3000"
-      WINDOW_SIZE: "30"
-
-      LOG_LEVEL: "info"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
-      OTEL_STDOUT_LOG_GROUP: "true"
-      LOG_GROUP: "/mnt/c/Eliezer/log/py-stat-inference-a2a.log"
-    ports:
-      - "8000:8000"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    networks:
-      - ecommerce_network
-
-  py-cart-a2a:
-    profiles: ["py-cart-a2a"]
-    depends_on:
-    - py-stat-inference-a2a
-    - go-data-sink
-    container_name: py-cart-a2a
-    build:
-      context: ../../py-cart-a2a
-      dockerfile: Dockerfile
-    image: py-cart-a2a:local
-    pull_policy: never
-    environment:
-      VERSION: "1.0.0"
-      ACCOUNT: "localhost"
-      APP_NAME: "py-cart-a2a.docker-compose"
-      HOST: "py-cart-a2a"
-      PORT: "8001"
-      ENV: "dev"
-
-      URL_AGENT: "http://127.0.0.1:8001"
-      SESSION_TIMEOUT: "3000"
-      WINDOW_SIZE: "7"
-      REQUEST_TIMEOUT: "29"
-
-      # go-data-sink service
-      URL_SERVICE_00: "http://go-data-sink:7008/v1/data-sink"
-
-      # agent py-stat-a2a
-      AGENT_REGISTER_NAME_00: "py-stat-inference-a2a.docker-compose"
-      AGENT_REGISTER_URL_00: "http://py-stat-inference-a2a:8000"
-
-      LOG_LEVEL: "info"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
-      OTEL_STDOUT_LOG_GROUP: "true"
-      LOG_GROUP: "/mnt/c/Eliezer/log/py-cart-a2a.log"
-    ports:
-      - "8001:8001"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    networks:
-      - ecommerce_network
-
-  py-inventory-a2a:
-    profiles: ["py-inventory-a2a"]
-    depends_on:
-    - py-stat-inference-a2a
-    container_name: py-inventory-a2a
-    build:
-      context: ../../py-inventory-a2a
-      dockerfile: Dockerfile
-    image: py-inventory-a2a:local
-    pull_policy: never
-    environment:
-      VERSION: "1.0"
-      ACCOUNT: "localhost"
-      APP_NAME: "py-inventory-a2a.docker-compose"
-      HOST: "py-inventory-a2a"
-      PORT: "8002"
-      ENV: "dev"
-
-      URL_AGENT: "http://py-inventory-a2a:8002"
-      SESSION_TIMEOUT: "3000"
-      WINDOW_SIZE: "30"
-      REQUEST_TIMEOUT: "29"
-
-      # go-inventory service
-      URL_SERVICE_00: "http://go-inventory:7000/v1/inventory"
-      # go-data-sink service
-      URL_SERVICE_01: "http://go-data-sink:7008/v1/data-sink"
-
-      # agent py-stat-a2a
-      AGENT_REGISTER_NAME_00: "py-stat-inference-a2a.docker-compose"
-      AGENT_REGISTER_URL_00: "http://py-stat-inference-a2a:8000"
-
-      LOG_LEVEL: "info"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
-      OTEL_STDOUT_LOG_GROUP: "true"
-      LOG_GROUP: "/mnt/c/Eliezer/log/py-inventory-a2a.log"
-    ports:
-      - "8002:8002"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    networks:
-      - ecommerce_network
-
-  py-planner-a2a:
-    profiles: ["py-planner-a2a"]
-    depends_on:
-    - py-stat-inference-a2a
-    - py-cart-a2a
-    container_name: py-planner-a2a
-    build:
-      context: ../../py-planner-a2a
-      dockerfile: Dockerfile
-    image: py-planner-a2a:local
-    pull_policy: never
-    environment:
-      VERSION: "1.0"
-      ACCOUNT: "localhost"
-      APP_NAME: "py-planner-a2a.docker-compose"
-      HOST: "py-planner-a2a"
-      PORT: "8003"
-      ENV: "dev"
-      URL_AGENT: "http://py-planner-a2a:8003"
-
-      WINDOW_SIZE: "30"
-      SESSION_TIMEOUT: "3000"
-
-      NUM_CELLS: "100"
-      SCALE_SHORT_TERM: "0.1"
-      SCALE_MEDIUM_TERM: "0.2"
-      SCALE_LONG_TERM: "0.5"
-
-      LOG_LEVEL: "info"
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
-      OTEL_STDOUT_LOG_GROUP: "true"
-      LOG_GROUP: "/mnt/c/Eliezer/log/py-planner-a2a.log"
-    ports:
-      - "8003:8003"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    networks:
-      - ecommerce_network
-
-  tei-server:
-    profiles: ["tei-server"]
-    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.6
-    container_name: tei-server
-    ports:
-      - "6500:80"
-    networks:
-      - ecommerce_network
-    volumes:
-      - ./data:/data
-    environment:
-      - MODEL_ID=BAAI/bge-large-en-v1.5
-
-  py-mcp-inventory-server:
-    profiles: ["py-mcp-inventory-server"]
-    container_name: py-mcp-inventory-server
-    build:
-      context: ../../py-mcp-inventory-server
-      dockerfile: Dockerfile
-    image: py-mcp-inventory-server:local
-    ports:
-      - "5000:5000"
-    networks:
-      - ecommerce_network
-    volumes:
-      - ./data:/data
-    environment:
-      VERSION: "0.1"
-      ACCOUNT: "aws:999999999"
-      APP_NAME: "py-mcp-inventory-server.localhost"
-      HOST: "0.0.0.0"
-      PORT: "5000"
-      SESSION_TIMEOUT: "700"
-      LOG_LEVEL: "INFO"
-      MCP_VALIDATE_CONTEXT: "false"
-
-      INVENTORY_URL: "http://go-inventory:7000/v1/inventory"
-      DATA_SINK_URL: "http://go-data-sink:7008/v1/data-sink"
-
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
-      OTEL_STDOUT_LOG_GROUP: "true"
-      LOG_GROUP: "/mnt/c/Eliezer/log/py-mcp-inventory-server.log"
-
-  py-mcp-sales-server:
-    profiles: ["py-mcp-sales-server"]
-    container_name: py-mcp-sales-server
-    build:
-      context: ../../py-mcp-sales-server
-      dockerfile: Dockerfile
-    image: py-mcp-sales-server:local
-    ports:
-      - "5001:5001"
-    networks:
-      - ecommerce_network
-    volumes:
-      - ./data:/data
-    environment:
-      VERSION: "0.1"
-      ACCOUNT: "aws:999999999"
-      APP_NAME: "py-mcp-sales-server.localhost"
-      HOST: "0.0.0.0"
-      PORT: "5001"
-      SESSION_TIMEOUT: "700"
-      LOG_LEVEL: "INFO"
-
-      ORDER_URL: "http://go-order:7004/v1/order"
-      DATA_SINK_URL: "http://go-data-sink:7008/v1/data-sink"
-
-      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318/v1/traces"
-      OTEL_STDOUT_LOG_GROUP: "true"
-      LOG_GROUP: "/mnt/c/Eliezer/log/py-mcp-sales-server.log"
-      MCP_VALIDATE_CONTEXT: "false"
 
 networks:
   ecommerce_network:

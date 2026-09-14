@@ -1,11 +1,8 @@
 # Grafana with Prometheus (metrics data)
 
-sudo docker compose --profile go-data-sink --profile go-inventory --profile go-cart --profile go-clearance --profile go-worker-event --profile go-order --profile py-stat-inference-a2a  --profile go-federated-registry --profile tei-server --profile py-mcp-sales-server --profile py-mcp-inventory-server up --build
+docker compose --profile go-authorizer-v2 --profile go-inventory-v2 --profile go-payment-v2 --profile go-order-v2 up 
 
-sudo docker compose --profile go-data-sink --profile go-inventory --profile go-cart --profile go-clearance --profile go-worker-event --profile go-order --profile py-stat-inference-a2a --profile py-cart-a2a --profile go-federated-registry --profile tei-server --profile py-mcp-sales-server --profile py-mcp-inventory-server up --build
-
-sudo docker compose --profile go-data-sink --profile go-inventory --profile go-cart --profile go-clearance --profile go-worker-event --profile go-order --profile go-federated-registry --profile tei-server --profile py-mcp-sales-server --profile py-mcp-inventory-server up --build
-
+docker compose --profile go-authorizer-v2 --profile go-inventory-v2 --profile go-payment-v2 --profile go-order-v2 up --build
 
 docker compose --profile all up -d --force-recreate
 sudo docker compose --profile go-data-sink up -d --force-recreate
