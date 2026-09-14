@@ -1,9 +1,31 @@
 ## Start
 
+Create a docker network
+
+```
+docker network create kafka-network
+```
+
+```
 docker compose up -d
 docker compose down
-
+```
 ## Connect
 
+```
 http://localhost:8083
+```
+## Setup
 
+```
+# add under advanced properties
+request.timeout.ms=30000
+default.api.timeout.ms=60000
+```
+
+
+## Test
+
+![alt text](image.png)
+
+![alt text](image01.png)
