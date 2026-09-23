@@ -33,6 +33,10 @@ services:
       TOKEN_TTL: "36000s"
       CURRENT_KID: "go-authorizer-v2-key-2026-09"
 
+      # EC256 Keys
+      EC256_PUBLIC_KEY_PATH: "/var/keys/ec256/ec256_public_key.pem"
+      EC256_KID: "go-authorizer-v2-ec256-key-2026-09"
+
       DB_HOST: "db-01"
       DB_PORT: "5432"
       DB_USERNAME: "postgres"
@@ -56,6 +60,7 @@ services:
     volumes:
       - ./keys/rsa_private_key.pem:/var/keys/rsa_private_key.pem:ro
       - ./keys/rsa_public_key.pem:/var/keys/rsa_public_key.pem:ro
+      - ./keys/ec256/ec256_public_key.pem:/var/keys/ec256/ec256_public_key.pem:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -118,9 +123,6 @@ services:
 
     ports:
       - "7000:7000"
-    volumes:
-      - ./secrets/username:/var/pod/secret/username:ro
-      - ./secrets/password:/var/pod/secret/password:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -192,9 +194,6 @@ services:
 
     ports:
       - "7003:7003"
-    volumes:
-      - ./secrets/username:/var/pod/secret/username:ro
-      - ./secrets/password:/var/pod/secret/password:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -275,14 +274,87 @@ services:
 
     ports:
       - "7001:7001"
-    volumes:
-      - ./secrets/username:/var/pod/secret/username:ro
-      - ./secrets/password:/var/pod/secret/password:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
       - ecommerce_network
 
+  py-mcp-inventory-v2:
+    profiles: ["py-mcp-inventory-v2"]
+    container_name: py-mcp-inventory-v2
+    build:
+      context: ../../py-mcp-inventory-v2
+      dockerfile: Dockerfile
+    image: py-mcp-inventory-v2:latest
+    pull_policy: never
+    
+    environment:
+      VERSION: "0.1"
+      ACCOUNT: "local:docker-compose"
+      APP_NAME: "py-mcp-inventory-v2"
+      HOST: "127.0.0.1"
+      PORT: "7500"
+      SESSION_TIMEOUT: "700"
+
+      INVENTORY_URL: "http://go-inventory-v2:7000"
+
+      LOG_LEVEL: "INFO"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
+      OTEL_STDOUT_LOG_GROUP: "True"
+      LOG_GROUP: "/mnt/c/Eliezer/log/py-mcp-inventory-v2.log"
+      MCP_VALIDATE_CONTEXT: "false"
+    ports:
+      - "7500:7500"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - ecommerce_network
+      
+  py-mcp-order-v2:
+    profiles: ["py-mcp-order-v2"]
+    container_name: py-mcp-order-v2
+    build:
+      context: ../../py-mcp-order-v2
+      dockerfile: Dockerfile
+    image: py-mcp-order-v2:latest
+    pull_policy: never
+    
+    environment:
+      VERSION: "0.1"
+      ACCOUNT: "local:docker-compose"
+      APP_NAME: "py-mcp-order-v2"
+      HOST: "127.0.0.1"
+      PORT: "7501"
+      SESSION_TIMEOUT: "700"
+
+      ORDER_URL: "http://go-order-v2:7001"
+
+      LOG_LEVEL: "INFO"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
+      OTEL_STDOUT_LOG_GROUP: "True"
+      LOG_GROUP: "/mnt/c/Eliezer/log/py-mcp-order-v2.log"
+      MCP_VALIDATE_CONTEXT: "false"
+
+    ports:
+      - "7501:7501"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - ecommerce_network
+
+  tei-server:
+    profiles: ["tei-server"]
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.6
+    container_name: tei-server
+    ports:
+      - "6500:80"
+    networks:
+      - ecommerce_network
+    volumes:
+      - ./data:/data
+    # Highlight-start
+    command: --model-id BAAI/bge-large-en-v1.5
+      
 networks:
   ecommerce_network:
     external: true

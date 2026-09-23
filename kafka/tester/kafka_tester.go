@@ -20,7 +20,7 @@ type Payload struct {
 func main() {
     topic := "topic.local.test.01"
     mechanism := plain.Mechanism{Username: "admin", Password: "admin"}
-    brokers := []string{"localhost:9092"}
+    brokers := []string{"127.0.0.1:9092"}
 
     ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
     defer cancel()

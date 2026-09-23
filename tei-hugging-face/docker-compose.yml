@@ -8,8 +8,11 @@ services:
       - ecommerce_network
     volumes:
       - ./data:/data
-    environment:
-      - MODEL_ID=BAAI/bge-large-en-v1.5
+    # Highlight-start
+    command: --model-id BAAI/bge-large-en-v1.5
+    # Xenova maps BGE models perfectly into ONNX format for CPU usage
+    #command: --model-id Xenova/bge-large-en-v1.5
+
 
 networks:
   ecommerce_network:
