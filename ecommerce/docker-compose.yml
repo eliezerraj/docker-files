@@ -44,8 +44,11 @@ services:
       DB_NAME: "postgres"
       DB_SCHEMA: "public"
       DATABASE_QUERY_TRACER: "false"
-      DB_MAX_CONNS: "10"
-      DB_MIN_CONNS: "5"
+      DB_MAX_CONNS: "5" 
+      DB_MIN_CONNS: "5" 
+      DB_CONNECTION_TIMEOUT_DURATION: "4s"
+      DB_LIFE_TIME_CONNS: "28s"
+      DB_IDLE_TIME_CONNS: "1s"
 
       LOG_LEVEL: "debug"
       LOG_MODE: "json"
@@ -103,8 +106,11 @@ services:
       DB_NAME: "postgres"
       DB_SCHEMA: "public"
       DATABASE_QUERY_TRACER: "false"
-      DB_MAX_CONNS: "10"
-      DB_MIN_CONNS: "5"
+      DB_MAX_CONNS: "5" 
+      DB_MIN_CONNS: "5" 
+      DB_CONNECTION_TIMEOUT_DURATION: "4s"
+      DB_LIFE_TIME_CONNS: "28s"
+      DB_IDLE_TIME_CONNS: "1s" 
 
       LOG_LEVEL: "debug"
       LOG_MODE: "json"
@@ -165,8 +171,11 @@ services:
       DB_NAME: "postgres"
       DB_SCHEMA: "public"
       DATABASE_QUERY_TRACER: "false"
-      DB_MAX_CONNS: "10"
-      DB_MIN_CONNS: "5"
+      DB_MAX_CONNS: "5" 
+      DB_MIN_CONNS: "5" 
+      DB_CONNECTION_TIMEOUT_DURATION: "4s"
+      DB_LIFE_TIME_CONNS: "28s"
+      DB_IDLE_TIME_CONNS: "1s"
 
       LOG_LEVEL: "debug"
       LOG_MODE: "json"
@@ -236,8 +245,11 @@ services:
       DB_NAME: "postgres"
       DB_SCHEMA: "public"
       DATABASE_QUERY_TRACER: "false"
-      DB_MAX_CONNS: "10"
-      DB_MIN_CONNS: "5"
+      DB_MAX_CONNS: "5" 
+      DB_MIN_CONNS: "5" 
+      DB_CONNECTION_TIMEOUT_DURATION: "4s"
+      DB_LIFE_TIME_CONNS: "28s"
+      DB_IDLE_TIME_CONNS: "1s"
 
       LOG_LEVEL: "debug"
       LOG_MODE: "json"
@@ -281,6 +293,8 @@ services:
 
   py-mcp-inventory-v2:
     profiles: ["py-mcp-inventory-v2"]
+    depends_on:
+    - go-inventory-v2
     container_name: py-mcp-inventory-v2
     build:
       context: ../../py-mcp-inventory-v2
@@ -292,7 +306,6 @@ services:
       VERSION: "0.1"
       ACCOUNT: "local:docker-compose"
       APP_NAME: "py-mcp-inventory-v2"
-      HOST: "127.0.0.1"
       PORT: "7500"
       SESSION_TIMEOUT: "700"
 
@@ -312,6 +325,8 @@ services:
       
   py-mcp-order-v2:
     profiles: ["py-mcp-order-v2"]
+    depends_on:
+    - go-order-v2
     container_name: py-mcp-order-v2
     build:
       context: ../../py-mcp-order-v2
@@ -323,7 +338,6 @@ services:
       VERSION: "0.1"
       ACCOUNT: "local:docker-compose"
       APP_NAME: "py-mcp-order-v2"
-      HOST: "127.0.0.1"
       PORT: "7501"
       SESSION_TIMEOUT: "700"
 
