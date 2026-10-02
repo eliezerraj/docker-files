@@ -1,0 +1,295 @@
+networks:
+  local-network:
+    name: local-network
+    external: true
+
+services:
+  prometheus:
+    profiles: ["all","prometheus"]
+    image: prom/prometheus:v3.13.0
+    container_name: prometheus
+    restart: "no"
+    ports:
+      - "9090:9090"
+    volumes:
+      - "./stack/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 30s
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - local-network
+
+  grafana:
+    profiles: ["all","grafana"]
+    image: grafana/grafana:11.6.0
+    container_name: grafana
+    depends_on:
+      #opensearch:
+      #  condition: service_healthy
+      prometheus:
+        condition: service_healthy
+    environment:
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_BASIC_ENABLED=false
+      - GF_INSTALL_PLUGINS=grafana-opensearch-datasource
+    ports:
+      - 3000:3000/tcp
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /etc/grafana/provisioning/datasources
+        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
+        apiVersion: 1
+        datasources:
+        - name: OpenSearch
+          type: grafana-opensearch-datasource
+          access: proxy
+          url: http://opensearch:9200
+          basicAuth: false
+          jsonData:
+            flavor: opensearch
+            version: "3.7.0"
+            timeField: "@timestamp"
+            maxConcurrentShardRequests: 5
+        - name: Prometheus
+          type: prometheus
+          access: proxy  
+          orgId: 1
+          url: http://prometheus:9090
+          basicAuth: false
+          isDefault: false
+          version: 1
+          editable: true
+        - name: Tempo
+          type: tempo
+          access: proxy
+          orgId: 1
+          url: http://tempo:4320
+          basicAuth: false
+          isDefault: false
+          version: 1
+          editable: true
+        EOF
+        /run.sh
+    networks:
+      - local-network
+
+  kafka:
+    profiles: ["all","kafka"]
+    image: confluentinc/cp-kafka:8.2.4
+    container_name: kafka
+    restart: "no"
+    ports:
+      - 9092:9092
+    environment:
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_NODE_ID=1
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:29093
+      - KAFKA_LISTENERS=PLAINTEXT://kafka:29092,PLAINTEXT_HOST://0.0.0.0:9092,CONTROLLER://kafka:29093
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+    healthcheck:
+      test: [ "CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092" ]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 30s
+    networks:
+      - local-network
+
+  kafka-init-topics:
+    profiles: ["all","kafka"]
+    image: confluentinc/cp-kafka:8.2.4
+    container_name: kafka-init-topics
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: /bin/sh
+    command: >
+      -c "
+        echo 'Waiting for the Kafka initialization...' && sleep 5 &&
+      
+        echo 'Creating topics' &&
+        kafka-topics --create --topic kfk.logs.go.order --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 &&
+        kafka-topics --create --topic kfk.logs.go.inventory --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 &&
+        kafka-topics --create --topic payment.topic.01 --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 &&
+
+        echo 'Topics created successfully.'
+      "
+    networks:
+      - local-network
+      
+  kafka-ui:
+    profiles: ["all","kafka"]
+    image: provectuslabs/kafka-ui:v0.7.2
+    container_name: kafka-ui
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "18080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: kafka
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+    networks:
+      - local-network
+
+  opensearch:
+    image: opensearchproject/opensearch:3.7.0
+    profiles: ["all","opensearch"]
+    container_name: opensearch
+    #depends_on:
+    #  kafka:
+    #    condition: service_healthy
+    ports:
+      - 9200:9200
+      - 9600:9600
+    environment:
+      - cluster.name=opensearch-cluster
+      - node.name=opensearch-node
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - plugins.security.disabled=true
+      - action.auto_create_index=true
+      - OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx2g
+      - OPENSEARCH_INITIAL_ADMIN_PASSWORD=9a!39cbE3
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -vq '\"status\":\"red\"'"]
+      interval: 20s
+      timeout: 3s
+      retries: 6
+      start_period: 30s
+    networks:
+      - local-network
+
+  kafka-connect:
+    profiles: ["all","opensearch"]
+    image: confluentinc/cp-kafka-connect:8.2.4
+    container_name: kafka-connect
+    depends_on:
+      kafka:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+    ports:
+      - 8083:8083
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka:29092
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: kafka-connect
+      CONNECT_CONFIG_STORAGE_TOPIC: _connect-configs
+      CONNECT_OFFSET_STORAGE_TOPIC: _connect-offsets
+      CONNECT_STATUS_STORAGE_TOPIC: _connect-status
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 1000
+      CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_PLUGIN_PATH: /usr/share/java,/usr/share/confluent-hub-components,/usr/share/kafka
+    volumes:
+      - "./stack/kafka/opensearch-connector-for-apache-kafka-3.1.1:/usr/share/kafka"
+      - "./stack/kafka-connect:/usr/share/kafka-connect"
+    command:
+      - bash
+      - -c
+      - |
+        nohup sh /usr/share/kafka-connect/connectors-setup.sh &
+        #
+        echo "Launching Kafka Connect worker"
+        /etc/confluent/docker/run &
+        #
+        sleep infinity
+    networks:
+      - local-network
+
+  otel-collector:
+    profiles: ["all","otel"]
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    depends_on:
+      prometheus:
+        condition: service_healthy
+      #tempo:
+      #  condition: service_healthy
+    command: ["--config=/etc/otel-collector-config.yml"]
+    volumes:
+      - ./stack/otel-collector/otel-collector-config.yml:/etc/otel-collector-config.yml
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    networks:
+      - local-network
+
+  tempo-init:
+    profiles: ["all","tempo"]
+    image: alpine:latest
+    container_name: tempo-init
+    user: root
+    volumes:
+      - tempo-data:/var/tempo
+    command: >
+      sh -c "chown -R 10001:10001 /var/tempo && chmod -R 777 /var/tempo"
+    networks:
+      - local-network
+
+  tempo:
+    profiles: ["all","tempo"]
+    image: grafana/tempo:2.10.1
+    container_name: tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+    depends_on:
+      - tempo-init
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3200/ready"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - ./stack/tempo/tempo.yml:/etc/tempo.yaml
+      - tempo-data:/var/tempo
+    ports:
+      - "3200:3200" # tempo
+      - "9095:9095" # tempo grpc
+    networks:
+      - local-network
+
+  fluent-bit:
+    profiles: ["all","fluent-bit"]
+    image: fluent/fluent-bit:latest
+    container_name: fluent-bit
+    depends_on:
+      kafka:
+        condition: service_healthy
+    volumes:
+    - ./stack/fluent-bit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+    - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - local-network
+volumes:
+  tempo-data:
+    driver: local

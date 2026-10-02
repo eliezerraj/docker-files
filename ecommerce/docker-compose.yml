@@ -1,15 +1,16 @@
 services:
 
   go-authorizer-v2:
-    profiles: ["go-authorizer-v2"]
+    profiles: ["all","go-authorizer-v2"]
     container_name: go-authorizer-v2
     build:
       context: ../../go-authorizer-v2
       dockerfile: Dockerfile
     image: go-authorizer-v2:latest
     pull_policy: never
+    labels:
+      app: go-authorizer-v2
     environment:
-
       APP_NAME: "go-authorizer-v2"
       VERSION: "2.0"
       ACCOUNT: "local:docker-composer"
@@ -68,9 +69,10 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - ecommerce_network
+      - local-network
   
   go-inventory-v2:
-    profiles: ["go-inventory-v2"]
+    profiles: ["all","go-inventory-v2"]
     depends_on:
     - go-authorizer-v2
     container_name: go-inventory-v2
@@ -79,7 +81,8 @@ services:
       dockerfile: Dockerfile
     image: go-inventory-v2:latest
     pull_policy: never
-    
+    labels:
+      app: go-inventory-v2
     environment:
       APP_NAME: "go-inventory-v2"
       VERSION: "2.0"
@@ -133,9 +136,10 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - ecommerce_network
+      - local-network
 
   go-payment-v2:
-    profiles: ["go-payment-v2"]
+    profiles: ["all","go-payment-v2"]
     depends_on:
     - go-authorizer-v2
     container_name: go-payment-v2
@@ -144,7 +148,8 @@ services:
       dockerfile: Dockerfile
     image: go-payment-v2:latest
     pull_policy: never
-    
+    labels:
+      app: go-payment-v2
     environment:
       APP_NAME: "go-payment-v2"
       VERSION: "2.0"
@@ -196,7 +201,8 @@ services:
       KAFKA_PRODUCER_NAME: 'payment-producer.local'
       KAFKA_PRODUCER_BROKER: "kafka:29092"
       KAFKA_PRODUCER_TOPIC: "payment.topic.01"
-      KAFKA_PRODUCER_PROTOCOL: "SASL_PLAINTEXT"
+      #KAFKA_PRODUCER_PROTOCOL: "SASL_PLAINTEXT"
+      KAFKA_PRODUCER_PROTOCOL: "PLAINTEXT"
       KAFKA_PRODUCER_MECHANISM: "PLAIN"
       KAFKA_PRODUCER_USERNAME: "admin"
       KAFKA_PRODUCER_PASSWORD: "admin"
@@ -207,9 +213,10 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - ecommerce_network
+      - local-network
 
   go-order-v2:
-    profiles: ["go-order-v2"]
+    profiles: ["all","go-order-v2"]
     depends_on:
     - go-authorizer-v2
     container_name: go-order-v2
@@ -218,7 +225,8 @@ services:
       dockerfile: Dockerfile
     image: go-order-v2:latest
     pull_policy: never
-    
+    labels:
+      app: go-order-v2
     environment:
       APP_NAME: "go-order-v2"
       VERSION: "2.0"
@@ -279,7 +287,8 @@ services:
       KAFKA_CONSUMER_GROUP_ID: "order-consumer-group-01"
       KAFKA_CONSUMER_BROKER: "kafka:29092"
       KAFKA_CONSUMER_TOPIC: "payment.topic.01"
-      KAFKA_CONSUMER_PROTOCOL: "SASL_PLAINTEXT"
+      #KAFKA_CONSUMER_PROTOCOL: "SASL_PLAINTEXT"
+      KAFKA_CONSUMER_PROTOCOL: "PLAINTEXT"
       KAFKA_CONSUMER_MECHANISM: "PLAIN"
       KAFKA_CONSUMER_USERNAME: "admin"
       KAFKA_CONSUMER_PASSWORD: "admin"
@@ -290,9 +299,10 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - ecommerce_network
+      - local-network
 
   py-mcp-inventory-v2:
-    profiles: ["py-mcp-inventory-v2"]
+    profiles: ["all","py-mcp-inventory-v2"]
     depends_on:
     - go-inventory-v2
     container_name: py-mcp-inventory-v2
@@ -301,7 +311,8 @@ services:
       dockerfile: Dockerfile
     image: py-mcp-inventory-v2:latest
     pull_policy: never
-    
+    labels:
+      app: py-mcp-inventory-v2
     environment:
       VERSION: "0.1"
       ACCOUNT: "local:docker-compose"
@@ -322,9 +333,10 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - ecommerce_network
-      
+      - local-network
+
   py-mcp-order-v2:
-    profiles: ["py-mcp-order-v2"]
+    profiles: ["all","py-mcp-order-v2"]
     depends_on:
     - go-order-v2
     container_name: py-mcp-order-v2
@@ -333,7 +345,8 @@ services:
       dockerfile: Dockerfile
     image: py-mcp-order-v2:latest
     pull_policy: never
-    
+    labels:
+      app: py-mcp-order-v2
     environment:
       VERSION: "0.1"
       ACCOUNT: "local:docker-compose"
@@ -355,6 +368,7 @@ services:
       - "host.docker.internal:host-gateway"
     networks:
       - ecommerce_network
+      - local-network
 
   tei-server:
     profiles: ["tei-server"]
@@ -364,12 +378,51 @@ services:
       - "6500:80"
     networks:
       - ecommerce_network
+      - local-network
     volumes:
       - ./data:/data
     # Highlight-start
     command: --model-id BAAI/bge-large-en-v1.5
-      
+
+  py-statistic-a2a-v2:
+    profiles: ["all","py-statistic-a2a-v2"]
+    depends_on:
+    - py-mcp-order-v2
+    - py-mcp-inventory-v2
+    container_name: py-statistic-a2a-v2
+    build:
+      context: ../../py-statistic-a2a
+      dockerfile: Dockerfile
+    image: py-statistic-a2a-v2:latest
+    pull_policy: never
+    labels:
+      app: py-statistic-a2a-v2
+    environment:
+      VERSION: "0.1"
+      ACCOUNT: "local:docker-compose"
+      APP_NAME: "py-statistic-a2a-v2"
+      PORT: "7600"
+
+      SESSION_TIMEOUT: "700"
+      URL_AGENT: "http://127.0.0.1:7600" 
+
+      LOG_LEVEL: "INFO"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
+      OTEL_STDOUT_LOG_GROUP: "True"
+      LOG_GROUP: "/mnt/c/Eliezer/log/py-statistic-a2a-v2.log"
+
+    ports:
+      - "7600:7600"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - ecommerce_network
+      - local-network
+
 networks:
   ecommerce_network:
     external: true
     name: ecommerce_network
+  local-network:
+    name: local-network
+    external: true
