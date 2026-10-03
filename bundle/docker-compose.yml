@@ -74,7 +74,7 @@ services:
           type: tempo
           access: proxy
           orgId: 1
-          url: http://tempo:4320
+          url: http://tempo:3200
           basicAuth: false
           isDefault: false
           version: 1
@@ -113,21 +113,30 @@ services:
       - local-network
 
   kafka-init-topics:
-    profiles: ["all","kafka"]
+    profiles: ["all", "kafka-init-topics"]
     image: confluentinc/cp-kafka:8.2.4
     container_name: kafka-init-topics
-    depends_on:
-      kafka:
-        condition: service_healthy
+    #depends_on:
+    #  kafka:
+    #    condition: service_healthy
     entrypoint: /bin/sh
     command: >
       -c "
         echo 'Waiting for the Kafka initialization...' && sleep 5 &&
       
-        echo 'Creating topics' &&
-        kafka-topics --create --topic kfk.logs.go.order --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 &&
+        echo 'Creating topic: kfk.logs.go.ecommerce.dlt' &&
+        kafka-topics --create --topic kfk.logs.go.ecommerce.dlt --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 &&
+
+        echo 'Creating topic: kfk.logs.go.authorizer' &&
+        kafka-topics --create --topic kfk.logs.go.authorizer --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 &&
+        echo 'Creating topic: kfk.logs.go.inventory' &&
         kafka-topics --create --topic kfk.logs.go.inventory --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 &&
-        kafka-topics --create --topic payment.topic.01 --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 &&
+        echo 'Creating topic: kfk.logs.go.order' &&
+        kafka-topics --create --topic kfk.logs.go.order --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 &&
+        echo 'Creating topic: kfk.logs.go.payment' &&
+        kafka-topics --create --topic kfk.logs.go.payment --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 &&
+        echo 'Creating topic: kfk.order.checkout.payment' &&
+        kafka-topics --create --topic kfk.order.checkout.payment --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 &&
 
         echo 'Topics created successfully.'
       "
@@ -135,7 +144,7 @@ services:
       - local-network
       
   kafka-ui:
-    profiles: ["all","kafka"]
+    profiles: ["all","kafka-ui"]
     image: provectuslabs/kafka-ui:v0.7.2
     container_name: kafka-ui
     depends_on:
@@ -185,14 +194,14 @@ services:
       - local-network
 
   kafka-connect:
-    profiles: ["all","opensearch"]
+    profiles: ["all","kafka-connect"]
     image: confluentinc/cp-kafka-connect:8.2.4
     container_name: kafka-connect
-    depends_on:
-      kafka:
-        condition: service_healthy
-      opensearch:
-        condition: service_healthy
+    #depends_on:
+      #kafka:
+      #  condition: service_healthy
+      #opensearch:
+      #  condition: service_healthy
     ports:
       - 8083:8083
     environment:
@@ -281,15 +290,17 @@ services:
     profiles: ["all","fluent-bit"]
     image: fluent/fluent-bit:latest
     container_name: fluent-bit
-    depends_on:
-      kafka:
-        condition: service_healthy
+    #depends_on:
+    #  kafka:
+    #    condition: service_healthy
     volumes:
     - ./stack/fluent-bit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+    - ./stack/fluent-bit/parsers.conf:/fluent-bit/etc/parsers.conf
     - /var/lib/docker/containers:/var/lib/docker/containers:ro
     - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - local-network
+
 volumes:
   tempo-data:
     driver: local

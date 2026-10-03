@@ -200,7 +200,7 @@ services:
       KAFKA_EVENT_DRY_RUN: "true"
       KAFKA_PRODUCER_NAME: 'payment-producer.local'
       KAFKA_PRODUCER_BROKER: "kafka:29092"
-      KAFKA_PRODUCER_TOPIC: "payment.topic.01"
+      KAFKA_PRODUCER_TOPIC: "kfk.order.checkout.payment"
       #KAFKA_PRODUCER_PROTOCOL: "SASL_PLAINTEXT"
       KAFKA_PRODUCER_PROTOCOL: "PLAINTEXT"
       KAFKA_PRODUCER_MECHANISM: "PLAIN"
@@ -286,7 +286,7 @@ services:
       KAFKA_CONSUMER_NAME: "order-consumer.local"
       KAFKA_CONSUMER_GROUP_ID: "order-consumer-group-01"
       KAFKA_CONSUMER_BROKER: "kafka:29092"
-      KAFKA_CONSUMER_TOPIC: "payment.topic.01"
+      KAFKA_CONSUMER_TOPIC: "kfk.order.checkout.payment"
       #KAFKA_CONSUMER_PROTOCOL: "SASL_PLAINTEXT"
       KAFKA_CONSUMER_PROTOCOL: "PLAINTEXT"
       KAFKA_CONSUMER_MECHANISM: "PLAIN"

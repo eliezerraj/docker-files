@@ -11,12 +11,12 @@ done
 STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST -H "Content-Type: application/json" \
   $BASE_PATH/connectors \
   -d '{
-  "name": "opensearch-connector-credential",
+  "name": "opensearch-connector-go-ecommerce",
   "config": {
-    "name": "opensearch-connector-credential",
+    "name": "opensearch-connector-go-ecommerce",
     "connector.class": "io.aiven.kafka.connect.opensearch.OpensearchSinkConnector",
     "tasks.max": "1",
-    "topics": "kfk.logs.go.inventory, kfk.logs.go.order",
+    "topics": "kfk.logs.go.inventory,kfk.logs.go.order,kfk.logs.go.payment,kfk.logs.go.authorizer",
     "connection.url": "http://opensearch:9200",
     "connection.username": "admin",
     "connection.password": "9a!39cbE3",
@@ -33,7 +33,7 @@ STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST -H "Content-Type: applic
     "errors.tolerance": "all",
     "errors.retry.timeout": "60000",
     "errors.retry.delay.max.ms": "5000",
-    "errors.deadletterqueue.topic.name": "kfk.logs.go.inventory.dlt",
+    "errors.deadletterqueue.topic.name": "kfk.logs.go.ecommerce.dlt",
     "errors.deadletterqueue.context.headers.enable": "true",
     "errors.log.enable": "true",
     "retry.backoff.ms": "1000",
@@ -45,12 +45,13 @@ STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST -H "Content-Type: applic
     "batch.size": "10",
     "transforms": "IndexReplace,TimestampRouter",
     "transforms.IndexReplace.type": "org.apache.kafka.connect.transforms.RegexRouter",
-    "transforms.IndexReplace.regex": "^kfk.logs.go.inventory$",
-    "transforms.IndexReplace.replacement": "logs-credential-provider",
+    "transforms.IndexReplace.regex": "^kfk\\.logs\\.go\\.(.*)$",
+    "transforms.IndexReplace.replacement": "logs-go-$1",
+
     "transforms.TimestampRouter.type": "org.apache.kafka.connect.transforms.TimestampRouter",
     "transforms.TimestampRouter.topic.format": "${topic}-${timestamp}",
     "transforms.TimestampRouter.timestamp.format": "yyyy.MM.dd"
   }
 }')
 
-echo "Credential provider connector status $STATUS"
+echo "Opensearch connector status $STATUS"
