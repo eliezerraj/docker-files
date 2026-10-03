@@ -38,3 +38,6 @@ networks:
   ecommerce_network:
     external: true
     name: ecommerce_network
+  local-network:
+    name: local-network
+    external: true

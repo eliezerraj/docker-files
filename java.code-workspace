@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"name": "documents",
+			"path": "../documents"
+		},
+		{
+			"name": "docker-files",
+			"path": "."
+		},
+		{
+			"name": "plataform-credentialprovider-api",
+			"path": "../plataform-credentialprovider-api"
+		},
+		{
+			"path": "../auth-stormbreaker-api"
+		}
+	]
+}

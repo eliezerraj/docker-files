@@ -1,0 +1,73 @@
+
+```sh
+http://localhost:3000
+
+http://localhost:18080
+
+http://localhost:3200/ready
+
+# check kfk connector
+curl -s http://localhost:8083/connectors
+
+["opensearch-connector-go-ecommerce","opensearch-connector-credential"]
+
+#delete
+curl -X DELETE http://localhost:8083/connectors/opensearch-connector-credential
+
+# topics kafka connector
+![alt text](image.png)
+
+# inspect health
+curl -s http://localhost:8083/connectors/opensearch-connector-go-ecommerce/status | jq
+
+# result
+  "name": "opensearch-connector-credential",
+  "connector": {
+    "state": "RUNNING",
+    "worker_id": "kafka-connect:8083",
+    "version": "3.1.1"
+  },
+  "tasks": [
+    {
+      "id": 0,
+      "state": "RUNNING",
+      "worker_id": "kafka-connect:8083",
+      "version": "3.1.1"
+    }
+  ],
+  "type": "sink"
+}
+
+# get config
+curl -s \
+  http://localhost:8083/connectors/opensearch-connector-credential/config \
+  | jq
+
+# get topics
+curl -s \
+  http://localhost:8083/connectors/opensearch-connector-credential/topics \
+  | jq
+
+  {
+  "opensearch-connector-credential": {
+    "topics": [
+      "kfk.logs.go.inventory",
+      "kfk.logs.go.order"
+    ]
+  }
+```
+# get opensearch status
+curl -u admin:'9a!39cbE3' \
+  http://localhost:9200/_cluster/health?pretty
+
+curl -u admin:'9a!39cbE3' \
+  http://localhost:9200/_cat/indices?v
+
+
+docker compose --profile kafka --profile kafka-ui up
+
+docker compose --profile fluent-bit up
+
+docker compose --profile grafana --profile prometheus --profile otel --profile tempo up
+
+docker compose --profile opensearch --profile kafka-connect up
