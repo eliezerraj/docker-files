@@ -59,7 +59,7 @@ services:
           jsonData:
             flavor: opensearch
             version: "3.7.0"
-            timeField: "@timestamp"
+            timeField: "time"
             maxConcurrentShardRequests: 5
         - name: Prometheus
           type: prometheus

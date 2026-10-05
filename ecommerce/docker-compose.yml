@@ -51,7 +51,7 @@ services:
       DB_LIFE_TIME_CONNS: "28s"
       DB_IDLE_TIME_CONNS: "1s"
 
-      LOG_LEVEL: "debug"
+      LOG_LEVEL: "warn"
       LOG_MODE: "json"
 
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
@@ -115,7 +115,7 @@ services:
       DB_LIFE_TIME_CONNS: "28s"
       DB_IDLE_TIME_CONNS: "1s" 
 
-      LOG_LEVEL: "debug"
+      LOG_LEVEL: "warn"
       LOG_MODE: "json"
 
       AUTHORIZATION_DRY_RUN: "true"
@@ -182,7 +182,7 @@ services:
       DB_LIFE_TIME_CONNS: "28s"
       DB_IDLE_TIME_CONNS: "1s"
 
-      LOG_LEVEL: "debug"
+      LOG_LEVEL: "warn"
       LOG_MODE: "json"
 
       AUTHORIZATION_DRY_RUN: "true"
@@ -259,7 +259,7 @@ services:
       DB_LIFE_TIME_CONNS: "28s"
       DB_IDLE_TIME_CONNS: "1s"
 
-      LOG_LEVEL: "debug"
+      LOG_LEVEL: "warn"
       LOG_MODE: "json"
 
       AUTHORIZATION_DRY_RUN: "true"
