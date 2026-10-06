@@ -123,10 +123,19 @@ services:
     command: >
       -c "
         echo 'Waiting for the Kafka initialization...' && sleep 5 &&
-      
-        echo 'Creating topic: kfk.logs.go.ecommerce.dlt' &&
-        kafka-topics --create --topic kfk.logs.go.ecommerce.dlt --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 &&
 
+        echo 'Creating topic: kfk.logs.go.semantic' &&
+        kafka-topics --create --topic kfk.logs.go.semantic --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 &&
+        echo 'Creating topic: kfk.logs.py.statistic.a2a' &&
+        kafka-topics --create --topic kfk.logs.py.statistic.a2a --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 &&
+        echo 'Creating topic: kfk.logs.py.inventory.a2a' &&
+        kafka-topics --create --topic kfk.logs.py.inventory.a2a --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 &&
+        echo 'Creating topic: kfk.dlt.ecommerce' &&
+        kafka-topics --create --topic kfk.dlt.ecommerce --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 &&
+        echo 'Creating topic: kfk.logs.py.mcp.order' &&
+        kafka-topics --create --topic kfk.logs.py.mcp.order --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 &&
+        echo 'Creating topic: kfk.logs.py.mcp.inventory' &&
+        kafka-topics --create --topic kfk.logs.py.mcp.inventory --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 &&
         echo 'Creating topic: kfk.logs.go.authorizer' &&
         kafka-topics --create --topic kfk.logs.go.authorizer --bootstrap-server kafka:29092 --replication-factor 1 --partitions 1 &&
         echo 'Creating topic: kfk.logs.go.inventory' &&

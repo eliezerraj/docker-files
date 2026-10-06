@@ -322,7 +322,7 @@ services:
 
       INVENTORY_URL: "http://go-inventory-v2:7000"
 
-      LOG_LEVEL: "INFO"
+      LOG_LEVEL: "WARNING"
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       OTEL_STDOUT_LOG_GROUP: "True"
       LOG_GROUP: "/mnt/c/Eliezer/log/py-mcp-inventory-v2.log"
@@ -356,7 +356,7 @@ services:
 
       ORDER_URL: "http://go-order-v2:7001"
 
-      LOG_LEVEL: "INFO"
+      LOG_LEVEL: "WARNING"
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       OTEL_STDOUT_LOG_GROUP: "True"
       LOG_GROUP: "/mnt/c/Eliezer/log/py-mcp-order-v2.log"
@@ -386,9 +386,6 @@ services:
 
   py-statistic-a2a-v2:
     profiles: ["all","py-statistic-a2a-v2"]
-    depends_on:
-    - py-mcp-order-v2
-    - py-mcp-inventory-v2
     container_name: py-statistic-a2a-v2
     build:
       context: ../../py-statistic-a2a
@@ -406,7 +403,7 @@ services:
       SESSION_TIMEOUT: "700"
       URL_AGENT: "http://127.0.0.1:7600" 
 
-      LOG_LEVEL: "INFO"
+      LOG_LEVEL: "WARNING"
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       OTEL_STDOUT_LOG_GROUP: "True"
       LOG_GROUP: "/mnt/c/Eliezer/log/py-statistic-a2a-v2.log"
