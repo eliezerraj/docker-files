@@ -46,14 +46,14 @@ scrape_configs:
     scrape_timeout: 10s
     metrics_path: /metrics
     static_configs:
-      - targets: ["host.docker.internal:7500"]
+      - targets: ["host.docker.internal:8501"]
 
   - job_name: "py-mcp-inventory-v2"
     scrape_interval: 10s
     scrape_timeout: 10s
     metrics_path: /metrics
     static_configs:
-      - targets: ["host.docker.internal:7501"]
+      - targets: ["host.docker.internal:8500"]
 
   - job_name: "py-statistics-a2a-v2"
     scrape_interval: 10s

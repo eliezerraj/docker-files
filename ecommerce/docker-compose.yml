@@ -313,14 +313,18 @@ services:
     pull_policy: never
     labels:
       app: py-mcp-inventory-v2
+
     environment:
-      VERSION: "0.1"
+      VERSION: "1.0"
       ACCOUNT: "local:docker-compose"
       APP_NAME: "py-mcp-inventory-v2"
       PORT: "7500"
       SESSION_TIMEOUT: "700"
 
       INVENTORY_URL: "http://go-inventory-v2:7000"
+
+      METRICS_HOST: "0.0.0.0"
+      METRICS_PORT: "8500"
 
       LOG_LEVEL: "WARNING"
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
@@ -329,6 +333,7 @@ services:
       MCP_VALIDATE_CONTEXT: "false"
     ports:
       - "7500:7500"
+      - "8500:8500"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -347,14 +352,18 @@ services:
     pull_policy: never
     labels:
       app: py-mcp-order-v2
+
     environment:
-      VERSION: "0.1"
+      VERSION: "1.0"
       ACCOUNT: "local:docker-compose"
       APP_NAME: "py-mcp-order-v2"
       PORT: "7501"
       SESSION_TIMEOUT: "700"
 
       ORDER_URL: "http://go-order-v2:7001"
+
+      METRICS_HOST: "0.0.0.0"
+      METRICS_PORT: "8501"
 
       LOG_LEVEL: "WARNING"
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
@@ -364,6 +373,7 @@ services:
 
     ports:
       - "7501:7501"
+      - "8501:8501"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -402,6 +412,9 @@ services:
 
       SESSION_TIMEOUT: "700"
       URL_AGENT: "http://127.0.0.1:7600" 
+
+      METRICS_HOST: "0.0.0.0"
+      METRICS_PORT: "9090"
 
       LOG_LEVEL: "WARNING"
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
