@@ -66,8 +66,10 @@ curl -u admin:'9a!39cbE3' \
 
 docker compose --profile kafka --profile kafka-ui up
 
+--profile fluent-bit up
+
 docker compose --profile fluent-bit up
 
-docker compose --profile grafana --profile prometheus --profile otel --profile tempo up
+docker compose --profile grafana --profile prometheus --profile otel --profile tempo --profile opensearch up
 
-docker compose --profile opensearch --profile kafka-connect up
+docker compose  --profile kafka-connect up

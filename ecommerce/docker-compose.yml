@@ -51,7 +51,7 @@ services:
       DB_LIFE_TIME_CONNS: "28s"
       DB_IDLE_TIME_CONNS: "1s"
 
-      LOG_LEVEL: "debug"
+      LOG_LEVEL: "warn"
       LOG_MODE: "json"
 
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
@@ -115,7 +115,7 @@ services:
       DB_LIFE_TIME_CONNS: "28s"
       DB_IDLE_TIME_CONNS: "1s" 
 
-      LOG_LEVEL: "debug"
+      LOG_LEVEL: "warn"
       LOG_MODE: "json"
 
       AUTHORIZATION_DRY_RUN: "true"
@@ -182,7 +182,7 @@ services:
       DB_LIFE_TIME_CONNS: "28s"
       DB_IDLE_TIME_CONNS: "1s"
 
-      LOG_LEVEL: "debug"
+      LOG_LEVEL: "warn"
       LOG_MODE: "json"
 
       AUTHORIZATION_DRY_RUN: "true"
@@ -259,7 +259,7 @@ services:
       DB_LIFE_TIME_CONNS: "28s"
       DB_IDLE_TIME_CONNS: "1s"
 
-      LOG_LEVEL: "debug"
+      LOG_LEVEL: "warn"
       LOG_MODE: "json"
 
       AUTHORIZATION_DRY_RUN: "true"
@@ -301,6 +301,20 @@ services:
       - ecommerce_network
       - local-network
 
+  tei-server:
+    profiles: ["tei-server"]
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.6
+    container_name: tei-server
+    ports:
+      - "6500:80"
+    networks:
+      - ecommerce_network
+      - local-network
+    volumes:
+      - ./data:/data
+    # Highlight-start
+    command: --model-id BAAI/bge-large-en-v1.5
+
   py-mcp-inventory-v2:
     profiles: ["all","py-mcp-inventory-v2"]
     depends_on:
@@ -313,22 +327,28 @@ services:
     pull_policy: never
     labels:
       app: py-mcp-inventory-v2
+
     environment:
-      VERSION: "0.1"
+      VERSION: "1.0"
       ACCOUNT: "local:docker-compose"
       APP_NAME: "py-mcp-inventory-v2"
+      HOST: "0.0.0.0"
       PORT: "7500"
       SESSION_TIMEOUT: "700"
 
       INVENTORY_URL: "http://go-inventory-v2:7000"
 
-      LOG_LEVEL: "INFO"
+      METRICS_HOST: "0.0.0.0"
+      METRICS_PORT: "8500"
+
+      LOG_LEVEL: "WARNING"
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       OTEL_STDOUT_LOG_GROUP: "True"
       LOG_GROUP: "/mnt/c/Eliezer/log/py-mcp-inventory-v2.log"
       MCP_VALIDATE_CONTEXT: "false"
     ports:
       - "7500:7500"
+      - "8500:8500"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -347,16 +367,21 @@ services:
     pull_policy: never
     labels:
       app: py-mcp-order-v2
+
     environment:
-      VERSION: "0.1"
+      VERSION: "1.0"
       ACCOUNT: "local:docker-compose"
       APP_NAME: "py-mcp-order-v2"
+      HOST: "0.0.0.0"
       PORT: "7501"
       SESSION_TIMEOUT: "700"
 
       ORDER_URL: "http://go-order-v2:7001"
 
-      LOG_LEVEL: "INFO"
+      METRICS_HOST: "0.0.0.0"
+      METRICS_PORT: "8501"
+
+      LOG_LEVEL: "WARNING"
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       OTEL_STDOUT_LOG_GROUP: "True"
       LOG_GROUP: "/mnt/c/Eliezer/log/py-mcp-order-v2.log"
@@ -364,39 +389,24 @@ services:
 
     ports:
       - "7501:7501"
+      - "8501:8501"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
       - ecommerce_network
       - local-network
 
-  tei-server:
-    profiles: ["tei-server"]
-    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.6
-    container_name: tei-server
-    ports:
-      - "6500:80"
-    networks:
-      - ecommerce_network
-      - local-network
-    volumes:
-      - ./data:/data
-    # Highlight-start
-    command: --model-id BAAI/bge-large-en-v1.5
-
   py-statistic-a2a-v2:
     profiles: ["all","py-statistic-a2a-v2"]
-    depends_on:
-    - py-mcp-order-v2
-    - py-mcp-inventory-v2
     container_name: py-statistic-a2a-v2
     build:
-      context: ../../py-statistic-a2a
+      context: ../../py-statistic-a2a-v2
       dockerfile: Dockerfile
     image: py-statistic-a2a-v2:latest
     pull_policy: never
     labels:
       app: py-statistic-a2a-v2
+      
     environment:
       VERSION: "0.1"
       ACCOUNT: "local:docker-compose"
@@ -404,15 +414,67 @@ services:
       PORT: "7600"
 
       SESSION_TIMEOUT: "700"
-      URL_AGENT: "http://127.0.0.1:7600" 
+      URL_AGENT: "http://py-statistic-a2a-v2:7600" 
 
-      LOG_LEVEL: "INFO"
+      LOG_LEVEL: "WARNING"
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       OTEL_STDOUT_LOG_GROUP: "True"
       LOG_GROUP: "/mnt/c/Eliezer/log/py-statistic-a2a-v2.log"
 
+      OTEL_PYTHON_FASTAPI_EXCLUDED_URLS: "/metrics"
+      OTEL_PYTHON_STARLETTE_EXCLUDED_URLS: "/metrics"
+      OTEL_PYTHON_EXCLUDED_URLS: "/metrics"
+
     ports:
       - "7600:7600"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - ecommerce_network
+      - local-network
+
+  py-inventory-v2-a2a:
+    profiles: ["all","py-inventory-v2-a2a"]
+    depends_on:
+    - py-statistic-a2a-v2
+    - py-mcp-inventory-v2
+    - py-mcp-order-v2
+    container_name: py-inventory-v2-a2a
+    build:
+      context: ../../py-inventory-v2-a2a
+      dockerfile: Dockerfile
+    image: py-inventory-v2-a2a:latest
+    pull_policy: never
+    labels:
+      app: py-inventory-v2-a2a
+    environment:
+      VERSION: "0.1"
+      ACCOUNT: "local:docker-compose"
+      APP_NAME: "py-inventory-v2-a2a"
+      PORT: "7601"
+
+      LIMIT: "7"
+      SCALE_CHOICE: "MEDIUM"
+      ANCHOR_CHOICE: "BALANCED"
+
+      SESSION_TIMEOUT: "700"
+      URL_AGENT: "http://py-inventory-v2-a2a:7601" 
+
+      MCP_SERVER_INVENTORY_URL: "http://py-mcp-inventory-v2:7500/mcp"
+      MCP_SERVER_ORDER_URL: "http://py-mcp-order-v2:7501/mcp"
+      A2A_SERVER_STATISTIC_A2A_URL: "http://py-statistic-a2a-v2:7600"
+
+      LOG_LEVEL: "WARNING"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
+      OTEL_STDOUT_LOG_GROUP: "True"
+      LOG_GROUP: "/mnt/c/Eliezer/log/py-inventory-v2-a2a.log"
+
+      OTEL_PYTHON_FASTAPI_EXCLUDED_URLS: "/metrics"
+      OTEL_PYTHON_STARLETTE_EXCLUDED_URLS: "/metrics"
+      OTEL_PYTHON_EXCLUDED_URLS: "/metrics"
+
+    ports:
+      - "7601:7601"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
