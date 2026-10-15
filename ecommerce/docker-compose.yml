@@ -118,7 +118,7 @@ services:
       LOG_LEVEL: "warn"
       LOG_MODE: "json"
 
-      AUTHORIZATION_DRY_RUN: "true"
+      AUTHORIZATION_DRY_RUN: "false"
       AUTHORIZATION_TIMEOUT: "15s"
       AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
       AUTHORIZATION_HEADER_KEY: "Authorization"
@@ -341,11 +341,16 @@ services:
       METRICS_HOST: "0.0.0.0"
       METRICS_PORT: "8500"
 
+      AUTHORIZATION_DRY_RUN: "False"
+      AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
+      AUTHORIZATION_ISSUER: "go-authorizer-v2"
+      AUTHORIZATION_AUDIENCE: "go-ecommerce"
+      
       LOG_LEVEL: "WARNING"
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
-      OTEL_STDOUT_LOG_GROUP: "True"
+      OTEL_STDOUT_LOG_GROUP: "False"
       LOG_GROUP: "/mnt/c/Eliezer/log/py-mcp-inventory-v2.log"
-      MCP_VALIDATE_CONTEXT: "false"
+
     ports:
       - "7500:7500"
       - "8500:8500"
@@ -381,11 +386,15 @@ services:
       METRICS_HOST: "0.0.0.0"
       METRICS_PORT: "8501"
 
+      AUTHORIZATION_DRY_RUN: "False"
+      AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
+      AUTHORIZATION_ISSUER: "go-authorizer-v2"
+      AUTHORIZATION_AUDIENCE: "go-ecommerce"
+
       LOG_LEVEL: "WARNING"
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
-      OTEL_STDOUT_LOG_GROUP: "True"
+      OTEL_STDOUT_LOG_GROUP: "False"
       LOG_GROUP: "/mnt/c/Eliezer/log/py-mcp-order-v2.log"
-      MCP_VALIDATE_CONTEXT: "false"
 
     ports:
       - "7501:7501"
@@ -416,9 +425,14 @@ services:
       SESSION_TIMEOUT: "700"
       URL_AGENT: "http://py-statistic-a2a-v2:7600" 
 
+      AUTHORIZATION_DRY_RUN: "False"
+      AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
+      AUTHORIZATION_ISSUER: "go-authorizer-v2"
+      AUTHORIZATION_AUDIENCE: "go-ecommerce"
+
       LOG_LEVEL: "WARNING"
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
-      OTEL_STDOUT_LOG_GROUP: "True"
+      OTEL_STDOUT_LOG_GROUP: "False"
       LOG_GROUP: "/mnt/c/Eliezer/log/py-statistic-a2a-v2.log"
 
       OTEL_PYTHON_FASTAPI_EXCLUDED_URLS: "/metrics"
@@ -433,24 +447,24 @@ services:
       - ecommerce_network
       - local-network
 
-  py-inventory-v2-a2a:
-    profiles: ["all","py-inventory-v2-a2a"]
+  py-inventory-a2a-v2:
+    profiles: ["all","py-inventory-a2a-v2"]
     depends_on:
     - py-statistic-a2a-v2
     - py-mcp-inventory-v2
     - py-mcp-order-v2
-    container_name: py-inventory-v2-a2a
+    container_name: py-inventory-a2a-v2
     build:
-      context: ../../py-inventory-v2-a2a
+      context: ../../py-inventory-a2a-v2
       dockerfile: Dockerfile
-    image: py-inventory-v2-a2a:latest
+    image: py-inventory-a2a-v2:latest
     pull_policy: never
     labels:
-      app: py-inventory-v2-a2a
+      app: py-inventory-a2a-v2
     environment:
       VERSION: "0.1"
       ACCOUNT: "local:docker-compose"
-      APP_NAME: "py-inventory-v2-a2a"
+      APP_NAME: "py-inventory-a2a-v2"
       PORT: "7601"
 
       LIMIT: "7"
@@ -458,16 +472,21 @@ services:
       ANCHOR_CHOICE: "BALANCED"
 
       SESSION_TIMEOUT: "700"
-      URL_AGENT: "http://py-inventory-v2-a2a:7601" 
+      URL_AGENT: "http://py-inventory-a2a-v2:7601" 
 
       MCP_SERVER_INVENTORY_URL: "http://py-mcp-inventory-v2:7500/mcp"
       MCP_SERVER_ORDER_URL: "http://py-mcp-order-v2:7501/mcp"
       A2A_SERVER_STATISTIC_A2A_URL: "http://py-statistic-a2a-v2:7600"
 
+      AUTHORIZATION_DRY_RUN: "False"
+      AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
+      AUTHORIZATION_ISSUER: "go-authorizer-v2"
+      AUTHORIZATION_AUDIENCE: "go-ecommerce"
+
       LOG_LEVEL: "WARNING"
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
-      OTEL_STDOUT_LOG_GROUP: "True"
-      LOG_GROUP: "/mnt/c/Eliezer/log/py-inventory-v2-a2a.log"
+      OTEL_STDOUT_LOG_GROUP: "False"
+      LOG_GROUP: "/mnt/c/Eliezer/log/py-inventory-a2a-v2.log"
 
       OTEL_PYTHON_FASTAPI_EXCLUDED_URLS: "/metrics"
       OTEL_PYTHON_STARLETTE_EXCLUDED_URLS: "/metrics"
