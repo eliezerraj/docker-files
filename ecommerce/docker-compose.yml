@@ -12,7 +12,7 @@ services:
       app: go-authorizer-v2
     environment:
       APP_NAME: "go-authorizer-v2"
-      VERSION: "2.0"
+      VERSION: "2.1"
       ACCOUNT: "local:docker-composer"
       ENV: "dev"
       TYPE: "webserver"
@@ -55,12 +55,11 @@ services:
       LOG_MODE: "json"
 
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
-      OTEL_STDOUT_TRACER: "false"
-      OTEL_COLLECTOR: "false"
-      OTEL_METRICS_PORT: "8000"
+      OTEL_METRICS_PORT: "8100"
 
     ports:
       - "7100:7100"
+      - "8100:8100"
     volumes:
       - ./keys/rsa_private_key.pem:/var/keys/rsa_private_key.pem:ro
       - ./keys/rsa_public_key.pem:/var/keys/rsa_public_key.pem:ro
@@ -85,7 +84,7 @@ services:
       app: go-inventory-v2
     environment:
       APP_NAME: "go-inventory-v2"
-      VERSION: "2.0"
+      VERSION: "2.1"
       ACCOUNT: "local:docker-composer"
       ENV: "dev"
       TYPE: "webserver"
@@ -126,12 +125,11 @@ services:
       ALLOWEDSCOPES: "workload01:db-01,workload01:db-02"
 
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
-      OTEL_STDOUT_TRACER: "false"
-      OTEL_COLLECTOR: "false"
       OTEL_METRICS_PORT: "8000"
 
     ports:
       - "7000:7000"
+      - "8000:8000"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -152,7 +150,7 @@ services:
       app: go-payment-v2
     environment:
       APP_NAME: "go-payment-v2"
-      VERSION: "2.0"
+      VERSION: "2.1"
       ACCOUNT: "local:docker-composer"
       ENV: "dev"
       TYPE: "webserver"
@@ -185,7 +183,7 @@ services:
       LOG_LEVEL: "warn"
       LOG_MODE: "json"
 
-      AUTHORIZATION_DRY_RUN: "true"
+      AUTHORIZATION_DRY_RUN: "false"
       AUTHORIZATION_TIMEOUT: "15s"
       AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
       AUTHORIZATION_HEADER_KEY: "Authorization"
@@ -193,11 +191,9 @@ services:
       ALLOWEDSCOPES: "workload01:db-01,workload01:db-02"
 
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
-      OTEL_STDOUT_TRACER: "false"
-      OTEL_COLLECTOR: "false"
-      OTEL_METRICS_PORT: "8000"
+      OTEL_METRICS_PORT: "8003"
 
-      KAFKA_EVENT_DRY_RUN: "true"
+      KAFKA_EVENT_DRY_RUN: "false" # Enable dry run mode for Kafka events
       KAFKA_PRODUCER_NAME: 'payment-producer.local'
       KAFKA_PRODUCER_BROKER: "kafka:29092"
       KAFKA_PRODUCER_TOPIC: "kfk.order.checkout.payment"
@@ -209,6 +205,7 @@ services:
 
     ports:
       - "7003:7003"
+      - "8003:8003"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -229,7 +226,7 @@ services:
       app: go-order-v2
     environment:
       APP_NAME: "go-order-v2"
-      VERSION: "2.0"
+      VERSION: "2.1"
       ACCOUNT: "local:docker-composer"
       ENV: "dev"
       TYPE: "worker"
@@ -245,6 +242,14 @@ services:
       HTTP_PORT: "7001"
       READ_BUFFER_SIZE: "12288"
       DISABLE_STARTUP_MESSAGE: "true"
+
+      AUTHENTICATION_TIMEOUT: "10s"
+      AUTHENTICATION_CLIENT_ID: "go-order-v2"
+      AUTHENTICATION_CLIENT_SECRET: "go-order-v2-secret-001"
+      AUTHENTICATION_DRY_RUN: "false"
+      AUTHENTICATION_REFRESH_INTERVAL: "3600"
+      AUTHENTICATION_AUTH_URL: "http://go-authorizer-v2:7100/v1/auth"
+      AUTHENTICATION_REFRESH_URL: "http://go-authorizer-v2:7100/v1/refresh"
 
       DB_HOST: "db-02"
       DB_PORT: "5432"
@@ -262,7 +267,7 @@ services:
       LOG_LEVEL: "warn"
       LOG_MODE: "json"
 
-      AUTHORIZATION_DRY_RUN: "true"
+      AUTHORIZATION_DRY_RUN: "false"
       AUTHORIZATION_TIMEOUT: "15s"
       AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
       AUTHORIZATION_HEADER_KEY: "Authorization"
@@ -270,9 +275,7 @@ services:
       ALLOWEDSCOPES: "workload01:db-01,workload01:db-02"
 
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
-      OTEL_STDOUT_TRACER: "false"
-      OTEL_COLLECTOR: "false"
-      OTEL_METRICS_PORT: "8000"
+      OTEL_METRICS_PORT: "8001"
 
       INVENTORY_ENDPOINT: "http://go-inventory-v2:7000"
       INVENTORY_URL_PATH: "/v1/product"
@@ -282,7 +285,6 @@ services:
       PAYMENT_URL_PATH: "/v1/payment"
       PAYMENT_ENDPOINT_TIMEOUT: "10s"
 
-      KAFKA_EVENT_DRY_RUN: "true"
       KAFKA_CONSUMER_NAME: "order-consumer.local"
       KAFKA_CONSUMER_GROUP_ID: "order-consumer-group-01"
       KAFKA_CONSUMER_BROKER: "kafka:29092"
@@ -295,6 +297,7 @@ services:
 
     ports:
       - "7001:7001"
+      - "8001:8001"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -425,6 +428,9 @@ services:
       SESSION_TIMEOUT: "700"
       URL_AGENT: "http://py-statistic-a2a-v2:7600" 
 
+      METRICS_HOST: "0.0.0.0"
+      METRICS_PORT: "8600"
+
       AUTHORIZATION_DRY_RUN: "False"
       AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
       AUTHORIZATION_ISSUER: "go-authorizer-v2"
@@ -435,12 +441,9 @@ services:
       OTEL_STDOUT_LOG_GROUP: "False"
       LOG_GROUP: "/mnt/c/Eliezer/log/py-statistic-a2a-v2.log"
 
-      OTEL_PYTHON_FASTAPI_EXCLUDED_URLS: "/metrics"
-      OTEL_PYTHON_STARLETTE_EXCLUDED_URLS: "/metrics"
-      OTEL_PYTHON_EXCLUDED_URLS: "/metrics"
-
     ports:
       - "7600:7600"
+      - "8600:8600"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -450,9 +453,9 @@ services:
   py-inventory-a2a-v2:
     profiles: ["all","py-inventory-a2a-v2"]
     depends_on:
-    - py-statistic-a2a-v2
-    - py-mcp-inventory-v2
-    - py-mcp-order-v2
+      - py-statistic-a2a-v2
+      - py-mcp-inventory-v2
+      - py-mcp-order-v2
     container_name: py-inventory-a2a-v2
     build:
       context: ../../py-inventory-a2a-v2
@@ -483,17 +486,17 @@ services:
       AUTHORIZATION_ISSUER: "go-authorizer-v2"
       AUTHORIZATION_AUDIENCE: "go-ecommerce"
 
+      METRICS_HOST: "0.0.0.0"
+      METRICS_PORT: "8601"
+
       LOG_LEVEL: "WARNING"
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       OTEL_STDOUT_LOG_GROUP: "False"
       LOG_GROUP: "/mnt/c/Eliezer/log/py-inventory-a2a-v2.log"
 
-      OTEL_PYTHON_FASTAPI_EXCLUDED_URLS: "/metrics"
-      OTEL_PYTHON_STARLETTE_EXCLUDED_URLS: "/metrics"
-      OTEL_PYTHON_EXCLUDED_URLS: "/metrics"
-
     ports:
       - "7601:7601"
+      - "8601:8601"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
