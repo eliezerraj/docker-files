@@ -4,6 +4,7 @@ networks:
     external: true
 
 services:
+
   prometheus:
     profiles: ["all","prometheus"]
     image: prom/prometheus:v3.13.0
@@ -32,10 +33,11 @@ services:
     image: grafana/grafana:11.6.0
     container_name: grafana
     depends_on:
-      #opensearch:
-      #  condition: service_healthy
+      opensearch:
+        condition: service_healthy
       prometheus:
         condition: service_healthy
+
     environment:
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
       - GF_AUTH_ANONYMOUS_ENABLED=true
@@ -113,12 +115,9 @@ services:
       - local-network
 
   kafka-init-topics:
-    profiles: ["all", "kafka-init-topics"]
+    profiles: ["kafka-init-topics"]
     image: confluentinc/cp-kafka:8.2.4
     container_name: kafka-init-topics
-    #depends_on:
-    #  kafka:
-    #    condition: service_healthy
     entrypoint: /bin/sh
     command: >
       -c "
@@ -171,9 +170,9 @@ services:
     image: opensearchproject/opensearch:3.7.0
     profiles: ["all","opensearch"]
     container_name: opensearch
-    #depends_on:
-    #  kafka:
-    #    condition: service_healthy
+    depends_on:
+      kafka:
+        condition: service_healthy
     ports:
       - 9200:9200
       - 9600:9600
@@ -206,11 +205,11 @@ services:
     profiles: ["all","kafka-connect"]
     image: confluentinc/cp-kafka-connect:8.2.4
     container_name: kafka-connect
-    #depends_on:
-      #kafka:
-      #  condition: service_healthy
-      #opensearch:
-      #  condition: service_healthy
+    depends_on:
+      kafka:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
     ports:
       - 8083:8083
     environment:
@@ -280,12 +279,15 @@ services:
     container_name: tempo
     command: ["-config.file=/etc/tempo.yaml"]
     depends_on:
-      - tempo-init
+      kafka:
+        condition: service_healthy
+      prometheus:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3200/ready"]
-      interval: 5s
+      interval: 60s
       timeout: 5s
-      retries: 10
+      retries: 5
     volumes:
       - ./stack/tempo/tempo.yml:/etc/tempo.yaml
       - tempo-data:/var/tempo
@@ -299,9 +301,9 @@ services:
     profiles: ["all","fluent-bit"]
     image: fluent/fluent-bit:latest
     container_name: fluent-bit
-    #depends_on:
-    #  kafka:
-    #    condition: service_healthy
+    depends_on:
+      kafka:
+        condition: service_healthy
     volumes:
     - ./stack/fluent-bit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
     - ./stack/fluent-bit/parsers.conf:/fluent-bit/etc/parsers.conf

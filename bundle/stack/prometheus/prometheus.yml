@@ -11,35 +11,35 @@ scrape_configs:
     scrape_timeout: 10s
     metrics_path: /metrics
     static_configs:
-      - targets: ["host.docker.internal:7100"]
+      - targets: ["host.docker.internal:8100"]
 
   - job_name: "go-inventory-v2"
     scrape_interval: 10s
     scrape_timeout: 10s
     metrics_path: /metrics
     static_configs:
-      - targets: ["host.docker.internal:7000"]
+      - targets: ["host.docker.internal:8000"]
 
   - job_name: "go-payment-v2"
     scrape_interval: 10s
     scrape_timeout: 10s
     metrics_path: /metrics
     static_configs:
-      - targets: ["host.docker.internal:7003"]
+      - targets: ["host.docker.internal:8003"]
 
   - job_name: "go-order-v2"
     scrape_interval: 10s
     scrape_timeout: 10s
     metrics_path: /metrics
     static_configs:
-      - targets: ["host.docker.internal:7001"]
+      - targets: ["host.docker.internal:8001"]
 
-  - job_name: "go-semantic-engine-v2"
-    scrape_interval: 10s
-    scrape_timeout: 10s
-    metrics_path: /metrics
-    static_configs:
-      - targets: ["host.docker.internal:7004"]
+  #- job_name: "go-semantic-engine-v2"
+  #  scrape_interval: 10s
+  #  scrape_timeout: 10s
+  #  metrics_path: /metrics
+  #  static_configs:
+  #    - targets: ["host.docker.internal:8004"]
 
   - job_name: "py-mcp-order-v2"
     scrape_interval: 10s
@@ -60,11 +60,11 @@ scrape_configs:
     scrape_timeout: 30s
     metrics_path: /metrics
     static_configs:
-      - targets: ["host.docker.internal:7600"]
+      - targets: ["host.docker.internal:8600"]
 
   - job_name: "py-inventory-a2a-v2"
-    scrape_interval: 30s
-    scrape_timeout: 30s
+    scrape_interval: 10s
+    scrape_timeout: 10s
     metrics_path: /metrics
     static_configs:
-      - targets: ["host.docker.internal:7601"]
+      - targets: ["host.docker.internal:8601"]
