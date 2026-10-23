@@ -31,7 +31,7 @@ services:
 
       RSA_PRIVATE_KEY_PATH: "/var/keys/rsa_private_key.pem"
       RSA_PUBLIC_KEY_PATH: "/var/keys/rsa_public_key.pem"
-      TOKEN_TTL: "36000s"
+      TOKEN_TTL: "172800s"
       CURRENT_KID: "go-authorizer-v2-key-2026-09"
 
       # EC256 Keys
@@ -107,7 +107,6 @@ services:
       DB_PASSWORD: "postgres"
       DB_NAME: "postgres"
       DB_SCHEMA: "public"
-      DATABASE_QUERY_TRACER: "false"
       DB_MAX_CONNS: "5" 
       DB_MIN_CONNS: "5" 
       DB_CONNECTION_TIMEOUT_DURATION: "4s"
@@ -118,6 +117,7 @@ services:
       LOG_MODE: "json"
 
       AUTHORIZATION_DRY_RUN: "false"
+      AUTHORIZATION_POLICY_PATH: "/app/application/infrastructure/auth/policy/policy.cedar"
       AUTHORIZATION_TIMEOUT: "15s"
       AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
       AUTHORIZATION_HEADER_KEY: "Authorization"
@@ -173,7 +173,6 @@ services:
       DB_PASSWORD: "postgres"
       DB_NAME: "postgres"
       DB_SCHEMA: "public"
-      DATABASE_QUERY_TRACER: "false"
       DB_MAX_CONNS: "5" 
       DB_MIN_CONNS: "5" 
       DB_CONNECTION_TIMEOUT_DURATION: "4s"
@@ -184,6 +183,7 @@ services:
       LOG_MODE: "json"
 
       AUTHORIZATION_DRY_RUN: "false"
+      AUTHORIZATION_POLICY_PATH: "/app/application/infrastructure/auth/policy/policy.cedar"
       AUTHORIZATION_TIMEOUT: "15s"
       AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
       AUTHORIZATION_HEADER_KEY: "Authorization"
@@ -257,7 +257,6 @@ services:
       DB_PASSWORD: "postgres"
       DB_NAME: "postgres"
       DB_SCHEMA: "public"
-      DATABASE_QUERY_TRACER: "false"
       DB_MAX_CONNS: "5" 
       DB_MIN_CONNS: "5" 
       DB_CONNECTION_TIMEOUT_DURATION: "4s"
@@ -268,6 +267,7 @@ services:
       LOG_MODE: "json"
 
       AUTHORIZATION_DRY_RUN: "false"
+      AUTHORIZATION_POLICY_PATH: "/app/application/infrastructure/auth/policy/policy.cedar"
       AUTHORIZATION_TIMEOUT: "15s"
       AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
       AUTHORIZATION_HEADER_KEY: "Authorization"
@@ -349,6 +349,9 @@ services:
       AUTHORIZATION_ISSUER: "go-authorizer-v2"
       AUTHORIZATION_AUDIENCE: "go-ecommerce"
       
+      AUTHORIZATION_MCP_RESOURCE: "https://py-mcp-inventory-v2"
+      AUTHORIZATION_SERVER: "http://go-authorizer-v2:7100"
+
       LOG_LEVEL: "WARNING"
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       OTEL_STDOUT_LOG_GROUP: "False"
@@ -394,6 +397,9 @@ services:
       AUTHORIZATION_ISSUER: "go-authorizer-v2"
       AUTHORIZATION_AUDIENCE: "go-ecommerce"
 
+      AUTHORIZATION_MCP_RESOURCE: "https://py-mcp-order-v2"
+      AUTHORIZATION_SERVER: "http://go-authorizer-v2:7100"
+      
       LOG_LEVEL: "WARNING"
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       OTEL_STDOUT_LOG_GROUP: "False"

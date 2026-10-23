@@ -201,6 +201,20 @@ services:
     networks:
       - local-network
 
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:latest
+    container_name: opensearch-dashboards
+    depends_on:
+      opensearch:
+        condition: service_healthy
+    environment:
+      - OPENSEARCH_HOSTS=["http://opensearch:9200"]
+      - DISABLE_SECURITY_DASHBOARDS_PLUGIN=true
+    ports:
+      - "5601:5601"
+    networks:
+      - local-network
+
   kafka-connect:
     profiles: ["all","kafka-connect"]
     image: confluentinc/cp-kafka-connect:8.2.4
