@@ -56,7 +56,6 @@ services:
 
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       OTEL_METRICS_PORT: "8100"
-
     ports:
       - "7100:7100"
       - "8100:8100"
@@ -72,8 +71,8 @@ services:
   
   go-inventory-v2:
     profiles: ["all","go-inventory-v2"]
-    depends_on:
-    - go-authorizer-v2
+    #depends_on:
+    #- go-authorizer-v2
     container_name: go-inventory-v2
     build:
       context: ../../go-inventory-v2
@@ -138,8 +137,8 @@ services:
 
   go-payment-v2:
     profiles: ["all","go-payment-v2"]
-    depends_on:
-    - go-authorizer-v2
+    #depends_on:
+    #- go-authorizer-v2
     container_name: go-payment-v2
     build:
       context: ../../go-payment-v2
@@ -214,8 +213,8 @@ services:
 
   go-order-v2:
     profiles: ["all","go-order-v2"]
-    depends_on:
-    - go-authorizer-v2
+    #depends_on:
+    #- go-authorizer-v2
     container_name: go-order-v2
     build:
       context: ../../go-order-v2
