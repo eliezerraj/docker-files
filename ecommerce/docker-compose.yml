@@ -29,12 +29,13 @@ services:
       READ_BUFFER_SIZE: "12288"
       DISABLE_STARTUP_MESSAGE: "true"
 
-      RSA_PRIVATE_KEY_PATH: "/var/keys/rsa_private_key.pem"
-      RSA_PUBLIC_KEY_PATH: "/var/keys/rsa_public_key.pem"
+      RSA_PRIVATE_KEY_PATH: "/var/keys/rsa/rsa_private_key.pem"
+      RSA_PUBLIC_KEY_PATH: "/var/keys/rsa/rsa_public_key.pem"
       TOKEN_TTL: "172800s"
       CURRENT_KID: "go-authorizer-v2-key-2026-09"
 
       # EC256 Keys
+      EC256_PRIVATE_KEY_PATH: "/var/keys/ec256/ec256_private_key.pem"
       EC256_PUBLIC_KEY_PATH: "/var/keys/ec256/ec256_public_key.pem"
       EC256_KID: "go-authorizer-v2-ec256-key-2026-09"
 
@@ -60,19 +61,21 @@ services:
       - "7100:7100"
       - "8100:8100"
     volumes:
-      - ./keys/rsa_private_key.pem:/var/keys/rsa_private_key.pem:ro
-      - ./keys/rsa_public_key.pem:/var/keys/rsa_public_key.pem:ro
-      - ./keys/ec256/ec256_public_key.pem:/var/keys/ec256/ec256_public_key.pem:ro
+      - ./assets/keys/rsa/rsa_private_key.pem:/var/keys/rsa/rsa_private_key.pem:ro
+      - ./assets/keys/rsa/rsa_public_key.pem:/var/keys/rsa/rsa_public_key.pem:ro
+      - ./assets/keys/ec256/ec256_private_key.pem:/var/keys/ec256/ec256_private_key.pem:ro
+      - ./assets/keys/ec256/ec256_public_key.pem:/var/keys/ec256/ec256_public_key.pem:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
+      - "py-inventory-a2a-v2:host-gateway"
     networks:
       - ecommerce_network
       - local-network
   
   go-inventory-v2:
     profiles: ["all","go-inventory-v2"]
-    #depends_on:
-    #- go-authorizer-v2
+    depends_on:
+    - go-authorizer-v2
     container_name: go-inventory-v2
     build:
       context: ../../go-inventory-v2
@@ -121,7 +124,6 @@ services:
       AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
       AUTHORIZATION_HEADER_KEY: "Authorization"
       AUTHORIZATION_REQUIRED_HEADER: "false"
-      ALLOWEDSCOPES: "workload01:db-01,workload01:db-02"
 
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       OTEL_METRICS_PORT: "8000"
@@ -137,8 +139,8 @@ services:
 
   go-payment-v2:
     profiles: ["all","go-payment-v2"]
-    #depends_on:
-    #- go-authorizer-v2
+    depends_on:
+    - go-authorizer-v2
     container_name: go-payment-v2
     build:
       context: ../../go-payment-v2
@@ -187,13 +189,12 @@ services:
       AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
       AUTHORIZATION_HEADER_KEY: "Authorization"
       AUTHORIZATION_REQUIRED_HEADER: "false"
-      ALLOWEDSCOPES: "workload01:db-01,workload01:db-02"
 
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       OTEL_METRICS_PORT: "8003"
 
       KAFKA_EVENT_DRY_RUN: "false" # Enable dry run mode for Kafka events
-      KAFKA_PRODUCER_NAME: 'payment-producer.local'
+      KAFKA_PRODUCER_NAME: 'payment-producer.docker-compose'
       KAFKA_PRODUCER_BROKER: "kafka:29092"
       KAFKA_PRODUCER_TOPIC: "kfk.order.checkout.payment"
       #KAFKA_PRODUCER_PROTOCOL: "SASL_PLAINTEXT"
@@ -213,8 +214,8 @@ services:
 
   go-order-v2:
     profiles: ["all","go-order-v2"]
-    #depends_on:
-    #- go-authorizer-v2
+    depends_on:
+    - go-authorizer-v2
     container_name: go-order-v2
     build:
       context: ../../go-order-v2
@@ -271,7 +272,6 @@ services:
       AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
       AUTHORIZATION_HEADER_KEY: "Authorization"
       AUTHORIZATION_REQUIRED_HEADER: "false"
-      ALLOWEDSCOPES: "workload01:db-01,workload01:db-02"
 
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       OTEL_METRICS_PORT: "8001"
@@ -284,8 +284,8 @@ services:
       PAYMENT_URL_PATH: "/v1/payment"
       PAYMENT_ENDPOINT_TIMEOUT: "10s"
 
-      KAFKA_CONSUMER_NAME: "order-consumer.local"
-      KAFKA_CONSUMER_GROUP_ID: "order-consumer-group-01"
+      KAFKA_CONSUMER_NAME: "order-consumer.docker-compose"
+      KAFKA_CONSUMER_GROUP_ID: "grp.order-consumer.docker-compose"
       KAFKA_CONSUMER_BROKER: "kafka:29092"
       KAFKA_CONSUMER_TOPIC: "kfk.order.checkout.payment"
       #KAFKA_CONSUMER_PROTOCOL: "SASL_PLAINTEXT"
@@ -346,9 +346,9 @@ services:
       AUTHORIZATION_DRY_RUN: "False"
       AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
       AUTHORIZATION_ISSUER: "go-authorizer-v2"
-      AUTHORIZATION_AUDIENCE: "go-ecommerce"
+      AUTHORIZATION_AUDIENCE: "py-mcp-inventory-v2"
       
-      AUTHORIZATION_MCP_RESOURCE: "https://py-mcp-inventory-v2"
+      MCP_PROTECTED_RESOURCE: "http://py-mcp-inventory-v2:7500"
       AUTHORIZATION_SERVER: "http://go-authorizer-v2:7100"
 
       LOG_LEVEL: "WARNING"
@@ -394,9 +394,9 @@ services:
       AUTHORIZATION_DRY_RUN: "False"
       AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
       AUTHORIZATION_ISSUER: "go-authorizer-v2"
-      AUTHORIZATION_AUDIENCE: "go-ecommerce"
+      AUTHORIZATION_AUDIENCE: "py-mcp-order-v2"
 
-      AUTHORIZATION_MCP_RESOURCE: "https://py-mcp-order-v2"
+      MCP_PROTECTED_RESOURCE: "http://py-mcp-order-v2:7501"
       AUTHORIZATION_SERVER: "http://go-authorizer-v2:7100"
       
       LOG_LEVEL: "WARNING"
@@ -439,7 +439,10 @@ services:
       AUTHORIZATION_DRY_RUN: "False"
       AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
       AUTHORIZATION_ISSUER: "go-authorizer-v2"
-      AUTHORIZATION_AUDIENCE: "go-ecommerce"
+      AUTHORIZATION_AUDIENCE: "py-statistics-a2a-v2"
+
+      A2A_PROTECTED_RESOURCE: "http://py-statistic-a2a-v2:7600"
+      AUTHORIZATION_SERVER: "http://go-authorizer-v2:7100"
 
       LOG_LEVEL: "WARNING"
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
@@ -479,20 +482,25 @@ services:
       SCALE_CHOICE: "MEDIUM"
       ANCHOR_CHOICE: "BALANCED"
 
-      SESSION_TIMEOUT: "700"
       URL_AGENT: "http://py-inventory-a2a-v2:7601" 
-
-      MCP_SERVER_INVENTORY_URL: "http://py-mcp-inventory-v2:7500/mcp"
-      MCP_SERVER_ORDER_URL: "http://py-mcp-order-v2:7501/mcp"
-      A2A_SERVER_STATISTIC_A2A_URL: "http://py-statistic-a2a-v2:7600"
+      SESSION_TIMEOUT: "700"
 
       AUTHORIZATION_DRY_RUN: "False"
       AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
       AUTHORIZATION_ISSUER: "go-authorizer-v2"
-      AUTHORIZATION_AUDIENCE: "go-ecommerce"
+      AUTHORIZATION_AUDIENCE: "py-inventory-a2a-v2"
+
+      AUTHORIZATION_CLIENT_ID_ASSERTION: "http://py-inventory-a2a-v2:7601/oauth/client-metadata.json"
+      AUTHORIZATION_URL_ASSERTION: "http://go-authorizer-v2:7100"
+      CURRENT_KID: "go-inventory-a2a-key-2026-10-26"
+      MCP_PROTECTED_RESOURCE: "http://py-inventory-a2a-v2:7601"
 
       METRICS_HOST: "0.0.0.0"
       METRICS_PORT: "8601"
+
+      MCP_SERVER_INVENTORY_URL: "http://py-mcp-inventory-v2:7500/mcp"
+      MCP_SERVER_ORDER_URL: "http://py-mcp-order-v2:7501/mcp"
+      A2A_SERVER_STATISTIC_A2A_URL: "http://py-statistic-a2a-v2:7600"
 
       LOG_LEVEL: "WARNING"
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
