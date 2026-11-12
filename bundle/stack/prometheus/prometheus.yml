@@ -40,6 +40,13 @@ scrape_configs:
   #  metrics_path: /metrics
   #  static_configs:
   #    - targets: ["host.docker.internal:8004"]
+  
+  - job_name: "py-mcp-gateway-v2"
+    scrape_interval: 30s
+    scrape_timeout: 30s
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["host.docker.internal:8499"]
 
   - job_name: "py-mcp-order-v2"
     scrape_interval: 10s

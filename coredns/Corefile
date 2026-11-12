@@ -1,0 +1,16 @@
+internal.:53 {
+    errors
+    hosts {
+        127.0.0.1 go-authorizer-v2.internal
+        127.0.0.1 go-inventory-v2.internal
+        127.0.0.1 go-payment-v2.internal
+        127.0.0.1 go-order-v2.internal
+        127.0.0.1 py-mcp-inventory-v2.internal
+        127.0.0.1 py-mcp-order-v2.internal
+        127.0.0.1 py-statistic-a2a-v2.internal
+        127.0.0.1 py-inventory-a2a-v2.internal
+        fallthrough
+    }
+    forward . /etc/resolv.conf
+    cache 30
+}
