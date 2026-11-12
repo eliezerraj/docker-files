@@ -72,6 +72,14 @@ docker compose --profile grafana --profile prometheus --profile otel --profile t
 
 docker compose  --profile kafka-connect up
 
+
+
+docker compose --profile fluent-bit up
+
+docker compose --profile kafka --profile kafka-ui up --profile grafana --profile prometheus --profile otel --profile tempo --profile opensearch up
+
+docker compose  --profile kafka-connect up
+
 Troubleshooting
 
 Opensearch without index

@@ -118,23 +118,24 @@ services:
       LOG_LEVEL: "warn"
       LOG_MODE: "json"
 
-      AUTHORIZATION_DRY_RUN: "false"
-      AUTHORIZATION_POLICY_PATH: "/app/application/infrastructure/auth/policy/policy.cedar"
+      AUTHORIZATION_DRY_RUN: "true"
+      AUTHORIZATION_POLICY_PATH: "/app/application/infrastructure/security/policy/policy.cedar"
       AUTHORIZATION_TIMEOUT: "15s"
       AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
       AUTHORIZATION_HEADER_KEY: "Authorization"
       AUTHORIZATION_REQUIRED_HEADER: "false"
+      AUTHORIZATION_AUDIENCE: "go-inventory-v2"
+      AUTHORIZATION_OAUTH_PROTECTED_RESOURCE_URL: "http://go-inventory-v2:7000/.well-known/oauth-protected-resource"
+      AUTHORIZATION_SERVER: "http://go-authorizer-v2:7100"
 
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       OTEL_METRICS_PORT: "8000"
-
     ports:
       - "7000:7000"
       - "8000:8000"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
-      - ecommerce_network
       - local-network
 
   go-payment-v2:
@@ -183,12 +184,15 @@ services:
       LOG_LEVEL: "warn"
       LOG_MODE: "json"
 
-      AUTHORIZATION_DRY_RUN: "false"
-      AUTHORIZATION_POLICY_PATH: "/app/application/infrastructure/auth/policy/policy.cedar"
+      AUTHORIZATION_DRY_RUN: "true"
+      AUTHORIZATION_POLICY_PATH: "/app/application/infrastructure/security/policy/policy.cedar"
       AUTHORIZATION_TIMEOUT: "15s"
       AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
       AUTHORIZATION_HEADER_KEY: "Authorization"
-      AUTHORIZATION_REQUIRED_HEADER: "false"
+      AUTHORIZATION_REQUIRED_HEADER: "true"
+      AUTHORIZATION_AUDIENCE: "go-payment-v2"
+      AUTHORIZATION_OAUTH_PROTECTED_RESOURCE_URL: "http://go-payment-v2:7001/.well-known/oauth-protected-resource"
+      AUTHORIZATION_SERVER: "http://go-authorizer-v2:7100"
 
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       OTEL_METRICS_PORT: "8003"
@@ -202,14 +206,12 @@ services:
       KAFKA_PRODUCER_MECHANISM: "PLAIN"
       KAFKA_PRODUCER_USERNAME: "admin"
       KAFKA_PRODUCER_PASSWORD: "admin"
-
     ports:
       - "7003:7003"
       - "8003:8003"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
-      - ecommerce_network
       - local-network
 
   go-order-v2:
@@ -244,9 +246,14 @@ services:
       DISABLE_STARTUP_MESSAGE: "true"
 
       AUTHENTICATION_TIMEOUT: "10s"
-      AUTHENTICATION_CLIENT_ID: "go-order-v2"
-      AUTHENTICATION_CLIENT_SECRET: "go-order-v2-secret-001"
-      AUTHENTICATION_DRY_RUN: "false"
+
+      AUTHENTICATION_CLIENT_ID_PAYMENT: "go-payment-v2"
+      AUTHENTICATION_CLIENT_SECRET_PAYMENT: "go-payment-v2-secret-001"
+
+      AUTHENTICATION_CLIENT_ID_INV: "go-inventory-v2"
+      AUTHENTICATION_CLIENT_SECRET_INV: "go-inventory-secret-001"
+
+      AUTHENTICATION_DRY_RUN: "true"
       AUTHENTICATION_REFRESH_INTERVAL: "3600"
       AUTHENTICATION_AUTH_URL: "http://go-authorizer-v2:7100/v1/auth"
       AUTHENTICATION_REFRESH_URL: "http://go-authorizer-v2:7100/v1/refresh"
@@ -266,12 +273,15 @@ services:
       LOG_LEVEL: "warn"
       LOG_MODE: "json"
 
-      AUTHORIZATION_DRY_RUN: "false"
-      AUTHORIZATION_POLICY_PATH: "/app/application/infrastructure/auth/policy/policy.cedar"
+      AUTHORIZATION_DRY_RUN: "true"
+      AUTHORIZATION_POLICY_PATH: "/app/application/infrastructure/security/policy/policy.cedar"
       AUTHORIZATION_TIMEOUT: "15s"
       AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
       AUTHORIZATION_HEADER_KEY: "Authorization"
       AUTHORIZATION_REQUIRED_HEADER: "false"
+      AUTHORIZATION_AUDIENCE: "go-order-v2"
+      AUTHORIZATION_OAUTH_PROTECTED_RESOURCE_URL: "http://go-order-v2:7001/.well-known/oauth-protected-resource"
+      AUTHORIZATION_SERVER: "http://go-authorizer-v2:7100"
 
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       OTEL_METRICS_PORT: "8001"
@@ -293,14 +303,12 @@ services:
       KAFKA_CONSUMER_MECHANISM: "PLAIN"
       KAFKA_CONSUMER_USERNAME: "admin"
       KAFKA_CONSUMER_PASSWORD: "admin"
-
     ports:
       - "7001:7001"
       - "8001:8001"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
-      - ecommerce_network
       - local-network
 
   tei-server:
@@ -329,7 +337,6 @@ services:
     pull_policy: never
     labels:
       app: py-mcp-inventory-v2
-
     environment:
       VERSION: "1.0"
       ACCOUNT: "local:docker-compose"
@@ -343,11 +350,15 @@ services:
       METRICS_HOST: "0.0.0.0"
       METRICS_PORT: "8500"
 
-      AUTHORIZATION_DRY_RUN: "False"
+      AUTHORIZATION_DRY_RUN: "True"
       AUTHORIZATION_JWKS_URL: "http://go-authorizer-v2:7100/v1/.well-known/jwks.json"
       AUTHORIZATION_ISSUER: "go-authorizer-v2"
       AUTHORIZATION_AUDIENCE: "py-mcp-inventory-v2"
-      
+
+      ENABLE_DNS_REBINDING_PROTECTION: "True"
+      ALLOWED_HOSTS: "localhost:*,127.0.0.1:*,py-mcp-inventory-v2:*"
+      ALLOWED_ORIGINS: "http://localhost:*,http://127.0.0.1:*,http://py-mcp-inventory-v2:*"
+
       MCP_PROTECTED_RESOURCE: "http://py-mcp-inventory-v2:7500"
       AUTHORIZATION_SERVER: "http://go-authorizer-v2:7100"
 
@@ -355,14 +366,12 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       OTEL_STDOUT_LOG_GROUP: "False"
       LOG_GROUP: "/mnt/c/Eliezer/log/py-mcp-inventory-v2.log"
-
     ports:
       - "7500:7500"
       - "8500:8500"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
-      - ecommerce_network
       - local-network
 
   py-mcp-order-v2:
@@ -377,7 +386,6 @@ services:
     pull_policy: never
     labels:
       app: py-mcp-order-v2
-
     environment:
       VERSION: "1.0"
       ACCOUNT: "local:docker-compose"
@@ -396,6 +404,10 @@ services:
       AUTHORIZATION_ISSUER: "go-authorizer-v2"
       AUTHORIZATION_AUDIENCE: "py-mcp-order-v2"
 
+      ENABLE_DNS_REBINDING_PROTECTION: "True"
+      ALLOWED_HOSTS: "localhost:*,127.0.0.1:*,py-mcp-order-v2:*"
+      ALLOWED_ORIGINS: "http://localhost:*,http://127.0.0.1:*,http://py-mcp-order-v2:*"
+
       MCP_PROTECTED_RESOURCE: "http://py-mcp-order-v2:7501"
       AUTHORIZATION_SERVER: "http://go-authorizer-v2:7100"
       
@@ -403,14 +415,12 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       OTEL_STDOUT_LOG_GROUP: "False"
       LOG_GROUP: "/mnt/c/Eliezer/log/py-mcp-order-v2.log"
-
     ports:
       - "7501:7501"
       - "8501:8501"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
-      - ecommerce_network
       - local-network
 
   py-statistic-a2a-v2:
@@ -423,7 +433,6 @@ services:
     pull_policy: never
     labels:
       app: py-statistic-a2a-v2
-      
     environment:
       VERSION: "0.1"
       ACCOUNT: "local:docker-compose"
@@ -448,14 +457,12 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       OTEL_STDOUT_LOG_GROUP: "False"
       LOG_GROUP: "/mnt/c/Eliezer/log/py-statistic-a2a-v2.log"
-
     ports:
       - "7600:7600"
       - "8600:8600"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
-      - ecommerce_network
       - local-network
 
   py-inventory-a2a-v2:
@@ -506,14 +513,12 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
       OTEL_STDOUT_LOG_GROUP: "False"
       LOG_GROUP: "/mnt/c/Eliezer/log/py-inventory-a2a-v2.log"
-
     ports:
       - "7601:7601"
       - "8601:8601"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
-      - ecommerce_network
       - local-network
 
 networks:
